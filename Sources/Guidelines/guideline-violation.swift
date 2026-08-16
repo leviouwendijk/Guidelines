@@ -20,10 +20,15 @@ public struct GuidelineViolation:
     }
 
     public var description: String {
+        let base = "\(reference): \(guideline.summary)"
+
         guard let reasoning else {
-            return reference
+            return base
         }
 
-        return "\(reference): \(reasoning)"
+        return """
+        \(base)
+        Reason: \(reasoning)
+        """
     }
 }
