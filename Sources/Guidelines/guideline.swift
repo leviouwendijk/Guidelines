@@ -27,6 +27,10 @@ public enum Guideline:
         OptionClusteringGuideline
     )
 
+    case source_organization(
+        SourceOrganizationGuideline
+    )
+
     case artifacts(
         ArtifactGuideline
     )
@@ -119,6 +123,9 @@ public enum Guideline:
         case .option_clustering(let guideline):
             guideline.content
 
+        case .source_organization(let guideline):
+            guideline.content
+
         case .artifacts(let guideline):
             guideline.content
 
@@ -207,6 +214,9 @@ public enum Guideline:
         case .option_clustering:
             .ergonomics
 
+        case .source_organization:
+            .ergonomics
+
         case .artifacts:
             .structure
 
@@ -282,6 +292,9 @@ public enum Guideline:
 
         case .option_clustering(let guideline):
             "ergonomics.option_clustering.\(guideline.rawValue)"
+
+        case .source_organization(let guideline):
+            "ergonomics.source_organization.\(guideline.rawValue)"
 
         case .artifacts(let guideline):
             "structure.artifacts.\(guideline.rawValue)"

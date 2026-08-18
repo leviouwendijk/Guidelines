@@ -37,7 +37,7 @@ public enum BoundaryAdaptationGuideline:
 
                 quote(
                     #"""
-                    **Do not drag substantial outer-domain behavior or representation inward merely because one current consumer requires it.**
+                    Do not drag substantial outer-domain behavior or representation inward merely because one current consumer requires it.
                     """#
                 )
 
@@ -239,7 +239,7 @@ public enum BoundaryAdaptationGuideline:
 
                 paragraph(
                     #"""
-                    If a lightweight `Arguments` protocol can express that directly, this may be preferable:
+                    If a lightweight Arguments protocol can express that directly, this may be preferable:
                     """#
                 )
 

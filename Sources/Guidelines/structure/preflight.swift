@@ -162,7 +162,7 @@ public enum PreflightGuideline:
 
                 paragraph(
                     #"""
-                    If inspection itself has meaningful effects, those effects should be modeled deliberately rather than hidden under the word `preflight`.
+                    If inspection itself has meaningful effects, those effects should be modeled deliberately rather than hidden under the word preflight.
                     """#
                 )
             }

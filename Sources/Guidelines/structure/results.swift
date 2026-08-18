@@ -35,7 +35,7 @@ public enum ResultGuideline:
 
                 quote(
                     #"""
-                    **What durable or meaningful state came out of this operation?**
+                    What durable or meaningful state came out of this operation?
                     """#
                 )
 
@@ -238,7 +238,7 @@ public enum ResultGuideline:
 
                 paragraph(
                     #"""
-                    when `DifferenceLayout` preserves information shared by several output paths.
+                    when DifferenceLayout preserves information shared by several output paths.
                     """#
                 )
             }
@@ -384,7 +384,7 @@ public enum ResultGuideline:
 
                 paragraph(
                     #"""
-                    See `failures-and-outcomes.md`.
+                    See FailureAndOutcomeGuideline.
                     """#
                 )
             }

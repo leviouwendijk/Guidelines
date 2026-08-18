@@ -32,7 +32,7 @@ public enum EventGuideline:
 
                 quote(
                     #"""
-                    **What happened during execution?**
+                    What happened during execution?
                     """#
                 )
 
@@ -44,7 +44,7 @@ public enum EventGuideline:
 
                 quote(
                     #"""
-                    **What is the final authoritative semantic outcome?**
+                    What is the final authoritative semantic outcome?
                     """#
                 )
 
@@ -201,7 +201,7 @@ public enum EventGuideline:
 
                 paragraph(
                     #"""
-                    If `copiedFiles` is part of the meaningful outcome, it belongs in the result.
+                    If copiedFiles is part of the meaningful outcome, it belongs in the result.
                     """#
                 )
 

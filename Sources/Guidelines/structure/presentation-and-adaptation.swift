@@ -335,7 +335,7 @@ public enum PresentationAndAdaptationGuideline:
 
                 paragraph(
                     #"""
-                    See `boundary-adaptation.md` for lightweight protocol-conformance exceptions.
+                    See BoundaryAdaptationGuideline for lightweight protocol-conformance exceptions.
                     """#
                 )
             }

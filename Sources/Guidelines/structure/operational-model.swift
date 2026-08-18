@@ -80,7 +80,7 @@ public enum OperationalModelGuideline:
 
                     paragraph(
                         #"""
-                        Resolution does not require a `ResolvedInput` type when the resolved value is tiny and local.
+                        Resolution does not require a ResolvedInput type when the resolved value is tiny and local.
                         """#
                     )
 

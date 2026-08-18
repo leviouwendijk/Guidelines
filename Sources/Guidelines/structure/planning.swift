@@ -114,7 +114,7 @@ public enum PlanningGuideline:
 
                 paragraph(
                     #"""
-                    over inspecting one interpretation and later having `run(input)` independently rediscover what should happen.
+                    over inspecting one interpretation and later having run(input) independently rediscover what should happen.
                     """#
                 )
             }
@@ -136,7 +136,7 @@ public enum PlanningGuideline:
 
                 quote(
                     #"""
-                    **The thing inspected should, wherever reasonable, be the thing executed.**
+                    The thing inspected should, wherever reasonable, be the thing executed.
                     """#
                 )
 

@@ -264,7 +264,7 @@ public enum InputGuideline:
 
                 paragraph(
                     #"""
-                    See `parse-dont-validate.md`.
+                    See ParseDontValidateGuideline.
                     """#
                 )
 

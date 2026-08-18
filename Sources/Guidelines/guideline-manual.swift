@@ -56,6 +56,15 @@ public enum GuidelineManual {
             ),
 
             .init(
+                area: .ergonomics,
+                key: "source_organization",
+                title: "Source Organization",
+                guidelines: SourceOrganizationGuideline.allCases.map {
+                    .source_organization($0)
+                }
+            ),
+
+            .init(
                 area: .structure,
                 key: "artifacts",
                 title: "Artifacts",
@@ -273,7 +282,7 @@ public enum GuidelineManual {
                         "Normalization is domain-relative. Silently discard information only when the discarded information is not meaningfully needed by the intended system.",
                         "Preserve raw input, reject it, or normalize it according to correctness, diagnostics, auditability, recovery, and domain needs rather than one global normalization rule.",
                         "Resolution interprets environment-dependent intent once where practical.",
-                        "Resolution does not automatically require a named `Resolved` type; create one when the resolved value becomes significant, reusable, readable, cohesive, or independently meaningful.",
+                        "Resolution does not automatically require a named Resolved type; create one when the resolved value becomes significant, reusable, readable, cohesive, or independently meaningful.",
                         "Small local tuples and primitive results are acceptable when introducing a carrier type would add little meaning.",
                         "Plans describe concrete intended work when planning adds determinism, inspectability, reviewability, reuse, approval, or reproducibility.",
                         "The thing inspected should, wherever reasonable, be the thing executed.",

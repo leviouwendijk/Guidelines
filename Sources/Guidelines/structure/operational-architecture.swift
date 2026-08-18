@@ -31,7 +31,7 @@ public enum OperationalArchitectureGuideline:
 
                 quote(
                     #"""
-                    **Design operations so intent, preparation, execution, observation, outcome, and presentation are separable at meaningful boundaries. Collapse the layers when the operation is simple; preserve them when separating them increases determinism, inspectability, reuse, readability, or adaptability.**
+                    Design operations so intent, preparation, execution, observation, outcome, and presentation are separable at meaningful boundaries. Collapse the layers when the operation is simple; preserve them when separating them increases determinism, inspectability, reuse, readability, or adaptability.
                     """#
                 )
 
@@ -254,7 +254,7 @@ public enum OperationalArchitectureGuideline:
 
                 paragraph(
                     #"""
-                    The architecture is a vocabulary for finding meaningful boundaries. It is not a requirement that every operation manufacture an `Input`, `ResolvedInput`, `Plan`, `Preflight`, `Event`, `Result`, and `Presenter`.
+                    The architecture is a vocabulary for finding meaningful boundaries. It is not a requirement that every operation manufacture an Input, ResolvedInput, Plan, Preflight, Event, Result, and Presenter.
                     """#
                 )
 
@@ -299,7 +299,7 @@ public enum OperationalArchitectureGuideline:
 
                 quote(
                     #"""
-                    **Preserve meaningful information and meaningful boundaries; avoid representations that add no independent meaning.**
+                    Preserve meaningful information and meaningful boundaries; avoid representations that add no independent meaning.
                     """#
                 )
 
@@ -434,7 +434,7 @@ public enum OperationalArchitectureGuideline:
 
                 paragraph(
                     #"""
-                    See `boundary-adaptation.md`.
+                    See BoundaryAdaptationGuideline.
                     """#
                 )
             }

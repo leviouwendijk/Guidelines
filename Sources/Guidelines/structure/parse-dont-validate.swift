@@ -50,7 +50,7 @@ public enum ParseDontValidateGuideline:
                 paragraph(
                     """
                     Second, standalone validation often produces a weak
-                    result such as a `Bool`, or simply returns another
+                    result such as a Bool, or simply returns another
                     instance of the same loose type. The caller is then
                     expected to remember that the otherwise
                     indistinguishable value has supposedly been
@@ -99,7 +99,7 @@ public enum ParseDontValidateGuideline:
                     paragraph(
                         """
                         when the important semantic fact is that the value
-                        is now a valid `ProjectIdentifier`.
+                        is now a valid ProjectIdentifier.
                         """
                     )
                 }
@@ -114,9 +114,9 @@ public enum ParseDontValidateGuideline:
 
                 paragraph(
                     """
-                    Code receiving a `ProjectIdentifier` does not need to
+                    Code receiving a ProjectIdentifier does not need to
                     remember whether some earlier branch happened to
-                    validate a `String`.
+                    validate a String.
                     """
                 )
 
@@ -166,9 +166,9 @@ public enum ParseDontValidateGuideline:
                     paragraph(
                         """
                         The preferred version makes the boundary explicit.
-                        Either the value becomes an `EmailAddress`, or
+                        Either the value becomes an EmailAddress, or
                         construction fails. There is no ambiguous middle
-                        state where a `String` has supposedly been validated
+                        state where a String has supposedly been validated
                         but still looks exactly like every other string.
                         """
                     )
@@ -379,7 +379,7 @@ public enum ParseDontValidateGuideline:
                 paragraph(
                     """
                     In those cases the meaningful output may genuinely be a
-                    `ValidationReport`, diagnostics, or a `Bool`, because
+                    ValidationReport, diagnostics, or a Bool, because
                     the caller asked to inspect an existing value rather
                     than convert loose input into a stronger value.
                     """

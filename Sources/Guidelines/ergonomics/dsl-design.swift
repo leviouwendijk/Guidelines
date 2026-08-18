@@ -88,7 +88,7 @@ public enum DSLDesignGuideline:
 
             paragraph(
                 #"""
-                The full initializer can still exist, but it should not be the primary writing experience. In the normal path, the DSL should carry the boring structural parts for us: method, path construction, handler adaptation, and collection building. The Server route DSL does this with a `routes` result-builder container and per-method route functions such as `get`, `post`, `put`, `patch`, `delete`, and `options`.
+                The full initializer can still exist, but it should not be the primary writing experience. In the normal path, the DSL should carry the boring structural parts for us: method, path construction, handler adaptation, and collection building. The Server route DSL does this with a routes result-builder container and per-method route functions such as get, post, put, patch, delete, and options.
                 """#
             )
             }
@@ -142,7 +142,7 @@ public enum DSLDesignGuideline:
 
             paragraph(
                 #"""
-                This is the same rule as wrapper-accessor APIs: move repeated context leftward so the final symbol can stay small. In a route DSL, the method itself is the wrapper. Once the call begins with `post`, the symbol no longer needs `route`, `http`, `method`, `handler`, or `endpoint` in its name.
+                This is the same rule as wrapper-accessor APIs: move repeated context leftward so the final symbol can stay small. In a route DSL, the method itself is the wrapper. Once the call begins with post, the symbol no longer needs route, http, method, handler, or endpoint in its name.
                 """#
             )
             }
@@ -457,7 +457,7 @@ public enum DSLDesignGuideline:
 
             paragraph(
                 #"""
-                The route file should feel like a table of capabilities. The runtime file should feel like process wiring. Mixing those two makes both APIs worse. The package template separates generated `routes.swift` from the app process setup.
+                The route file should feel like a table of capabilities. The runtime file should feel like process wiring. Mixing those two makes both APIs worse. The package template separates generated routes.swift from the app process setup.
                 """#
             )
             }
@@ -579,7 +579,7 @@ public enum DSLDesignGuideline:
 
             paragraph(
                 #"""
-                The long internal phrase belongs in help text, not necessarily in the flag name. The DSL surface should be compact; explanation can live beside it. The update command follows this with `root`, `file`, `yes`, and `dryRun` while using help strings for the fuller meaning.
+                The long internal phrase belongs in help text, not necessarily in the flag name. The DSL surface should be compact; explanation can live beside it. The update command follows this with root, file, yes, and dryRun while using help strings for the fuller meaning.
                 """#
             )
             }
@@ -627,7 +627,7 @@ public enum DSLDesignGuideline:
 
             paragraph(
                 #"""
-                A DSL becomes learnable when the user can infer the next symbol. Once someone understands `post`, they should not have to relearn `put`. Regularity is more valuable than clever one-off convenience.
+                A DSL becomes learnable when the user can infer the next symbol. Once someone understands post, they should not have to relearn put. Regularity is more valuable than clever one-off convenience.
                 """#
             )
             }
@@ -760,7 +760,7 @@ public enum DSLDesignGuideline:
 
             paragraph(
                 #"""
-                This follows the same naming principle as nested APIs: do not repeat the parent context in every child symbol. Once we are inside `routes`, `get` is enough. Once we are inside `post`, `request` is enough. Once we are modifying a route, `.use` is enough.
+                This follows the same naming principle as nested APIs: do not repeat the parent context in every child symbol. Once we are inside routes, get is enough. Once we are inside post, request is enough. Once we are modifying a route, .use is enough.
                 """#
             )
             }
