@@ -81,21 +81,24 @@ public enum WebInterfaceInteractionGuideline:
             .init(
                 title: "Provide pasteable shell passes without changing the user's session",
                 summary: #"""
-                For coordinated edits, prefer one auditable pasteable shell
-                block. Default to zsh on macOS and isolate stateful work.
+                For coordinated edits, prefer auditable pasteable shell
+                passes that preserve the user's long-lived terminal state.
                 """#
             ) {
                 list(
                     style: .unordered,
                     items: [
                         "Default to zsh on macOS; use bash or another shell when the actual target environment requires it.",
-                        "Prefer one pasteable block for one coherent pass.",
-                        "Do not leave cwd, shell options, environment variables, traps, aliases, or temporary functions changed in the user's long-lived terminal.",
-                        "When cd, set -e, traps, shell options, or temporary environment are useful, contain them in a child shell or equivalent isolated scope.",
+                        "Prefer one pasteable block for one coherent mutation domain, but split larger dependency graphs into separately provable stages.",
+                        "Do not leave cwd, shell options, environment variables, traps, aliases, temporary functions, or other execution state changed in the user's long-lived terminal.",
+                        "Prefer path-scoped commands such as `git -C` and package-path options when they avoid changing cwd. Use a small subshell when temporary shell state genuinely needs isolation.",
                         "Do not place an explicit shell exit in a block intended for an interactive terminal.",
+                        "Do not use a large outer heredoc merely as a transport or isolation envelope. A truncated paste can leave the terminal waiting at `heredoc>` and make execution state unnecessarily ambiguous.",
+                        "Bounded heredocs remain useful for Python or source payloads. Keep their scope small, use unique delimiters, and place the closing delimiter visibly at the beginning of its line.",
                         "Use ordinary shell commands for simple work; use Python when exact multi-line replacement, structured transformation, or multi-file coordination is clearer.",
                         "For Python source mutations, prefer pathlib plus exact-match validation over loose global replacement.",
-                        "Validate expected files and replacement counts before writing whenever practical; unexpected state should fail closed instead of guessing.",
+                        "Validate stable mutation assumptions before writing. For coordinated changes, calculate and validate all important replacements before committing any of them to disk when practical.",
+                        "Use conditional execution for dependent stages so parse, build, test, publication, refresh, or deployment cannot run merely because it happens to appear later in the pasted text.",
                         "Keep mutations inspectable; do not hide source in encoded blobs merely to transport it.",
                         "Do not commit, push, rewrite history, deploy, or delete unrelated files unless explicitly requested.",
                     ]
@@ -104,14 +107,12 @@ public enum WebInterfaceInteractionGuideline:
                 code(
                     language: "zsh",
                     content: #"""
-                    zsh <<'ZSH'
-                    set -e
-                    cd ~/path/to/repository
-
-                    python3 <<'PY'
+                    REPO="$HOME/path/to/repository" python3 <<'PY'
+                    import os
                     from pathlib import Path
 
-                    path = Path("Sources/Example.swift")
+                    root = Path(os.environ["REPO"])
+                    path = root / "Sources/Example.swift"
                     text = path.read_text()
 
                     old = "exact current source"
@@ -122,12 +123,16 @@ public enum WebInterfaceInteractionGuideline:
                             "Expected exactly one current source match."
                         )
 
-                    path.write_text(text.replace(old, new, 1))
+                    changed = text.replace(
+                        old,
+                        new,
+                        1,
+                    )
+
+                    path.write_text(changed)
                     PY
 
-                    swiftc -parse Sources/Example.swift
-                    git diff --check
-                    ZSH
+                    swiftc -parse                         "$HOME/path/to/repository/Sources/Example.swift"                         && git -C "$HOME/path/to/repository" diff --check
                     """#
                 )
             }
@@ -151,6 +156,10 @@ public enum WebInterfaceInteractionGuideline:
                         "For generators and websites, run the project-specific generation command when the bug concerns generated output.",
                         "Inspect the generated HTML, JavaScript, CSS, JSON, routes, or artifacts for the exact property being fixed; compilation alone is not proof of generated behavior.",
                         "Prefer project-specific commands already supplied by the user over guessed generic substitutes.",
+                        "Condition later stages on required earlier proof. A failed parse, build, TestFlow, render, or output assertion must prevent dependent publication, refresh, or deployment.",
+                        "Surface important failures at the boundary where they occur while preserving the command's original diagnostics.",
+                        "Use `command || return 1` inside an intentionally scoped function when the stage is already obvious, or add a precise message such as `command || { print -u2 -- \"FAIL: build Guidelines\"; false; }` when the failed boundary should be named.",
+                        "Do not use a bare `|| 1`; in shell that attempts to execute a command named `1`. Propagate failure with a real shell status operation such as `false`, `return 1` in a function, or the surrounding conditional chain.",
                         "Do not sync, publish, push, or otherwise create external effects unless those are explicitly part of the requested workflow.",
                         "Finish with git diff --check and show the relevant final diff or status.",
                     ]

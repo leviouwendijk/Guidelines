@@ -35,6 +35,10 @@ public enum Guideline:
         WebInterfaceInteractionGuideline
     )
 
+    case mutation_execution_workflows(
+        MutationExecutionWorkflowGuideline
+    )
+
     case artifacts(
         ArtifactGuideline
     )
@@ -133,6 +137,9 @@ public enum Guideline:
         case .web_interface_interactions(let guideline):
             guideline.content
 
+        case .mutation_execution_workflows(let guideline):
+            guideline.content
+
         case .artifacts(let guideline):
             guideline.content
 
@@ -227,6 +234,9 @@ public enum Guideline:
         case .web_interface_interactions:
             .ai
 
+        case .mutation_execution_workflows:
+            .ai
+
         case .artifacts:
             .structure
 
@@ -308,6 +318,9 @@ public enum Guideline:
 
         case .web_interface_interactions(let guideline):
             "ai.web_interface_interactions.\(guideline.rawValue)"
+
+        case .mutation_execution_workflows(let guideline):
+            "ai.mutation_execution_workflows.\(guideline.rawValue)"
 
         case .artifacts(let guideline):
             "structure.artifacts.\(guideline.rawValue)"

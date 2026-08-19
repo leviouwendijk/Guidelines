@@ -86,6 +86,27 @@ public enum GuidelineManual {
             },
 
             .init(
+                area: .ai,
+                key: "mutation_execution_workflows",
+                title: "Mutation Execution Workflows",
+                guidelines: MutationExecutionWorkflowGuideline.allCases.map {
+                    .mutation_execution_workflows($0)
+                }
+            ) {
+                paragraph(
+                    #"""
+                    Instructions for safely applying larger AI-assisted mutations, gating dependent stages, surfacing failures at useful boundaries, and avoiding transport-related ambiguity.
+                    """#
+                )
+
+                paragraph(
+                    #"""
+                    Recurring workflows use stable shorthand: LRP for line-ranged manual patches, ZMP for pasteable zsh mutation passes, SDP for staged dependency-aware operations, and GPR for the Guidelines publish-refresh sequence.
+                    """#
+                )
+            },
+
+            .init(
                 area: .structure,
                 key: "principles",
                 title: "Structural Principles",
