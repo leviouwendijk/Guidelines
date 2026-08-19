@@ -93,6 +93,9 @@ public enum WebInterfaceInteractionGuideline:
                         "Do not leave cwd, shell options, environment variables, traps, aliases, temporary functions, or other execution state changed in the user's long-lived terminal.",
                         "Prefer path-scoped commands such as `git -C` and package-path options when they avoid changing cwd. Use a small subshell when temporary shell state genuinely needs isolation.",
                         "Do not place an explicit shell exit in a block intended for an interactive terminal.",
+                        "Do not rely on top-level hash-prefixed comments in executable paste blocks. Interactive zsh may have INTERACTIVE_COMMENTS disabled.",
+                        "Use the colon builtin for silent annotations and `print --` for visible stage labels instead of changing the user's shell options.",
+                        "When a mutation language writes source containing shell, Swift, JSON, or another language, treat the destination as a separate escaping boundary and validate the resulting source.",
                         "Do not use a large outer heredoc merely as a transport or isolation envelope. A truncated paste can leave the terminal waiting at `heredoc>` and make execution state unnecessarily ambiguous.",
                         "Bounded heredocs remain useful for Python or source payloads. Keep their scope small, use unique delimiters, and place the closing delimiter visibly at the beginning of its line.",
                         "Use ordinary shell commands for simple work; use Python when exact multi-line replacement, structured transformation, or multi-file coordination is clearer.",
@@ -107,6 +110,8 @@ public enum WebInterfaceInteractionGuideline:
                 code(
                     language: "zsh",
                     content: #"""
+                    : "Mutation"
+
                     REPO="$HOME/path/to/repository" python3 <<'PY'
                     import os
                     from pathlib import Path
@@ -132,7 +137,10 @@ public enum WebInterfaceInteractionGuideline:
                     path.write_text(changed)
                     PY
 
-                    swiftc -parse                         "$HOME/path/to/repository/Sources/Example.swift"                         && git -C "$HOME/path/to/repository" diff --check
+                    : "Proof"
+
+                    swiftc -parse "$HOME/path/to/repository/Sources/Example.swift" &&
+                        git -C "$HOME/path/to/repository" diff --check
                     """#
                 )
             }

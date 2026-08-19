@@ -8,6 +8,8 @@ public enum MutationExecutionWorkflowGuideline:
     case preflight_before_writes
     case conditionally_chain_stages
     case surface_failure_stage
+    case interactive_shell_paste_syntax
+    case embedded_language_boundaries
     case transport_integrity
     case split_large_operations
     case guidelines_publish_refresh
@@ -108,6 +110,81 @@ public enum MutationExecutionWorkflowGuideline:
                         "Do not use bare `|| 1`; it is not a shell status literal.",
                         "Do not wrap every trivial command. Add stage labels where distinguishing the failing boundary materially helps recovery.",
                     ]
+                )
+            }
+
+        case .interactive_shell_paste_syntax:
+            .init(
+                title: "Do not depend on interactive comment parsing",
+                summary: #"""
+                Pasteable shell instructions must remain valid even when the
+                interactive shell does not recognize hash-prefixed comments.
+                """#
+            ) {
+                list(
+                    style: .unordered,
+                    items: [
+                        "Do not rely on hash-prefixed comment lines in executable blocks pasted directly into an interactive shell. In zsh, whether they are comments depends on the INTERACTIVE_COMMENTS option.",
+                        "Do not change the user's persistent shell options merely to make annotations parse.",
+                        "Use the colon builtin for silent stage annotations and `print --` when a stage label should be visible.",
+                        "A top-level annotation in a pasteable block must itself be valid executable syntax under the assumed interactive shell configuration.",
+                        "Comments inside a bounded heredoc payload belong to the payload language and are unaffected by the interactive shell comment setting.",
+                        "If the shell reports `command not found: #`, treat that as a transport-design failure and correct the pass rather than altering the user's shell configuration.",
+                    ]
+                )
+
+                code(
+                    language: "zsh",
+                    content: #"""
+                    : "Mutation stage"
+
+                    command_a &&
+                        command_b
+
+                    print -- "=== Generated-output proof ==="
+
+                    command_c
+                    """#
+                )
+            }
+
+        case .embedded_language_boundaries:
+            .init(
+                title: "Treat generated code as a sequence of language boundaries",
+                summary: #"""
+                When one language writes source for another language, reason
+                explicitly about every representation and escaping boundary.
+                """#
+            ) {
+                list(
+                    style: .unordered,
+                    items: [
+                        "A mutation script that writes source containing another language crosses multiple parsers. Correct syntax in the mutation language does not guarantee correct destination source.",
+                        "Reason about the exact destination text first, then encode that text correctly in the mutation language.",
+                        "Prefer raw or otherwise low-escape string representations when they reduce ambiguity, but still inspect or assert the resulting destination source.",
+                        "Do not add extra escaping merely because the destination text itself contains escape syntax. Over-escaping can produce valid mutation code that writes invalid source.",
+                        "Be cautious with terminal backslash-newline continuations inside generated shell examples. A host string parser may consume the newline before the destination source is written.",
+                        "Prefer continuation forms that survive representation boundaries cleanly, such as operators at line boundaries, structured argument arrays, or separate commands.",
+                        "After a high-risk generated-source mutation, parse or build the destination language and inspect important rendered tokens or lines when practical.",
+                    ]
+                )
+
+                code(
+                    language: "text",
+                    content: #"""
+                    mutation language
+                        |
+                        v
+                    destination source
+                        |
+                        v
+                    embedded command or DSL
+                        |
+                        v
+                    runtime interpretation
+
+                    Validate the representation at each boundary.
+                    """#
                 )
             }
 
