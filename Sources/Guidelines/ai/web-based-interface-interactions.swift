@@ -95,6 +95,8 @@ public enum WebInterfaceInteractionGuideline:
                         "Do not place an explicit shell exit in a block intended for an interactive terminal.",
                         "Do not rely on top-level hash-prefixed comments in executable paste blocks. Interactive zsh may have INTERACTIVE_COMMENTS disabled.",
                         "Use the colon builtin for silent annotations and `print --` for visible stage labels instead of changing the user's shell options.",
+                        "When the environment provides `workflow_section`, `workflow_step`, or `workflow_diag`, use those optional hooks for structured section, progress, and result presentation.",
+                        "Capability-detect optional workflow presentation functions at the call site and provide a compact plain-text fallback. Do not inline their implementations into every pass or make formatting availability a correctness dependency.",
                         "When a mutation language writes source containing shell, Swift, JSON, or another language, treat the destination as a separate escaping boundary and validate the resulting source.",
                         "Do not use a large outer heredoc merely as a transport or isolation envelope. A truncated paste can leave the terminal waiting at `heredoc>` and make execution state unnecessarily ambiguous.",
                         "Bounded heredocs remain useful for Python or source payloads. Keep their scope small, use unique delimiters, and place the closing delimiter visibly at the beginning of its line.",

@@ -95,13 +95,13 @@ public enum GuidelineManual {
             ) {
                 paragraph(
                     #"""
-                    Instructions for safely applying larger AI-assisted mutations, gating dependent stages, surfacing failures at useful boundaries, and avoiding transport-related ambiguity.
+                    Instructions for safely applying larger AI-assisted mutations, gating dependent stages, surfacing failures at useful boundaries, presenting workflow state without coupling it to execution semantics, and avoiding transport-related ambiguity.
                     """#
                 )
 
                 paragraph(
                     #"""
-                    Recurring workflows use stable shorthand: LRP for line-ranged manual patches, ZMP for pasteable zsh mutation passes, SDP for staged dependency-aware operations, GPR for the Guidelines publish-refresh sequence, and CR for final-state Concatenation context refresh.
+                    Recurring workflows use stable shorthand: LRP for line-ranged manual patches, ZMP for pasteable zsh mutation passes, SDP for staged dependency-aware operations, GPR for the Guidelines publish-refresh sequence, and CR for final-state Concatenation context refresh. Optional workflow_section, workflow_step, and workflow_diag hooks provide structured terminal presentation when available, with compact plain-text fallbacks otherwise.
                     """#
                 )
             },

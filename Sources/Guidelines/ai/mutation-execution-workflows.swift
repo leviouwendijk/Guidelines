@@ -8,6 +8,7 @@ public enum MutationExecutionWorkflowGuideline:
     case preflight_before_writes
     case conditionally_chain_stages
     case surface_failure_stage
+    case workflow_presentation
     case interactive_shell_paste_syntax
     case embedded_language_boundaries
     case transport_integrity
@@ -115,6 +116,64 @@ public enum MutationExecutionWorkflowGuideline:
                         "Do not use bare `|| 1`; it is not a shell status literal.",
                         "Do not wrap every trivial command. Add stage labels where distinguishing the failing boundary materially helps recovery.",
                     ]
+                )
+            }
+
+        case .workflow_presentation:
+            .init(
+                title: "Present workflow state without making presentation a dependency",
+                summary: #"""
+                Use optional shell presentation hooks to distinguish sections,
+                current execution steps, and result diagnostics while keeping
+                the underlying workflow portable and semantically independent.
+                """#
+            ) {
+                list(
+                    style: .unordered,
+                    items: [
+                        "Use `workflow_section <title>` before a major command group or semantic section. It announces what is about to run; it does not report the result.",
+                        "Use `workflow_step <kind> <title> [detail ...]` for individual execution progress. Use semantic kinds such as `run`, `ok`, `warn`, `fail`, and `info` rather than ANSI colors or presentation-specific values.",
+                        "Use `workflow_diag <kind> <title> [detail ...]` for actual result diagnostics. Use semantic kinds such as `running`, `success`, `warning`, `failure`, and `info`.",
+                        "Let the workflow functions own ANSI coloring, spacing, markers, and other terminal presentation. Do not duplicate ANSI escape sequences throughout generated mutation passes.",
+                        "Do not pipe or replace the underlying command output through these functions. Compiler, build, TestFlow, renderer, git, and other command diagnostics should continue to stream normally.",
+                        "Presentation is not execution semantics. Command exit status, assertions, and explicit conditional gates remain authoritative for whether later stages may execute.",
+                        "Capability-detect each optional function in the active shell. In zsh, `$+functions[workflow_section]`, `$+functions[workflow_step]`, and `$+functions[workflow_diag]` provide compact checks without requiring environment mutation.",
+                        "If a presentation function is unavailable or itself fails, fall back to a compact plain-text `print` rather than failing the workflow.",
+                        "Do not copy or redefine the workflow presentation functions inside every generated pass. Use the environment implementation when present and degrade cleanly when absent.",
+                        "Keep fallbacks semantically equivalent but visually simple. The portable pass should remain readable without ANSI support or custom shell configuration.",
+                        "Use presentation at meaningful boundaries rather than wrapping every trivial command. The goal is distinguishable execution state, not terminal noise.",
+                    ]
+                )
+
+                code(
+                    language: "zsh",
+                    content: #"""
+                    (( $+functions[workflow_section] )) &&
+                        workflow_section "Git diff validation" ||
+                        print -- "=== Git diff validation ==="
+
+                    (( $+functions[workflow_step] )) &&
+                        workflow_step run "GPR · Guidelines publication" "publication scope check" ||
+                        print -- "RUN: GPR · Guidelines publication — publication scope check"
+
+                    if git diff --check; then
+                        (( $+functions[workflow_diag] )) &&
+                            workflow_diag success "Git diff validation" "No diff validation errors" ||
+                            print -- "SUCCESS: Git diff validation — No diff validation errors"
+                    else
+                        (( $+functions[workflow_diag] )) &&
+                            workflow_diag failure "Git diff validation" "git diff --check failed" ||
+                            print -u2 -- "FAILURE: Git diff validation — git diff --check failed"
+
+                        false
+                    fi
+                    """#
+                )
+
+                paragraph(
+                    #"""
+                    The compact `function && formatted || plain` presentation expression is intentional here: presentation failure itself is non-semantic, so falling back to plain output is preferable to blocking the actual workflow.
+                    """#
                 )
             }
 
