@@ -5,7 +5,9 @@ public enum ExecutionGuideline:
     CaseIterable
 {
     case remove_ambiguity_before_execution
+    case reject_material_plan_drift
     case owns_domain_effects
+    case no_ambient_semantic_output
     case observation_not_presentation
     case domain_neutral_cancellation_failure
 
@@ -71,6 +73,52 @@ public enum ExecutionGuideline:
                 )
             }
 
+        case .reject_material_plan_drift:
+            .init(
+                title: "Reject material plan drift",
+                summary: #"""
+                When execution depends on a previously prepared plan, detect material
+                state drift and reject, re-plan, or explicitly re-resolve rather than
+                silently executing different work.
+                """#
+            ) {
+                paragraph(
+                    #"""
+                    A plan may become stale after it is prepared.
+                    """#
+                )
+
+                paragraph(
+                    #"""
+                    Before effectful execution, verify domain-relevant preconditions when changed state could materially alter what the approved or inspected plan means.
+                    """#
+                )
+
+                code(
+                    language: "text",
+                    content: #"""
+                    file fingerprint changed
+                    sync source changed
+                    deployment input changed
+                    accounting state changed
+                    Git base revision moved
+                    remote resource version changed
+                    """#
+                )
+
+                paragraph(
+                    #"""
+                    When material drift is detected, reject the stale plan, re-plan, or explicitly re-resolve according to domain policy.
+                    """#
+                )
+
+                paragraph(
+                    #"""
+                    Do not silently execute materially different work under an earlier preview, approval, test, or expectation.
+                    """#
+                )
+            }
+
         case .owns_domain_effects:
             .init(
                 title: "Execution owns domain effects",
@@ -118,6 +166,48 @@ public enum ExecutionGuideline:
                 paragraph(
                     #"""
                     Execution should know how to do the work, not how every possible consumer wants that work represented.
+                    """#
+                )
+            }
+
+        case .no_ambient_semantic_output:
+            .init(
+                title: "Do not use ambient output as the semantic API",
+                summary: #"""
+                Reusable operations should return semantic outcomes and expose structured
+                observation rather than requiring callers to infer meaning from stdout,
+                stderr, logs, terminal state, or other ambient presentation channels.
+                """#
+            ) {
+                paragraph(
+                    #"""
+                    Ambient output may be useful for presentation, diagnostics, or observation.
+                    """#
+                )
+
+                paragraph(
+                    #"""
+                    It should not be the only place where a reusable operation communicates its meaningful outcome.
+                    """#
+                )
+
+                code(
+                    language: "text",
+                    content: #"""
+                    final semantic outcome
+                        -> return Result / domain value
+
+                    temporal progress
+                        -> emit Event / structured observation
+
+                    human-facing output
+                        -> presenter / interface
+                    """#
+                )
+
+                paragraph(
+                    #"""
+                    A CLI may print the returned result and render emitted events. Another Swift caller should be able to use the same operation without parsing those prints.
                     """#
                 )
             }

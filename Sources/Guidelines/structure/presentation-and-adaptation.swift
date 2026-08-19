@@ -9,8 +9,6 @@ public enum PresentationAndAdaptationGuideline:
     case shared_projections
     case domain_representation_not_consumer_presentation
     case replaceable_presentation
-    case adapt_at_boundaries
-    case composition_roots_coordinate
     case presenters_consume_decisions
 
     public var content: GuidelineContent {
@@ -293,98 +291,6 @@ public enum PresentationAndAdaptationGuideline:
                 paragraph(
                     #"""
                     should usually mean adding an adapter or presenter, not teaching the inner operation about the new consumer.
-                    """#
-                )
-            }
-
-        case .adapt_at_boundaries:
-            .init(
-                title: "Adaptation occurs at boundaries",
-                summary: #"""
-                Perform substantial semantic translation between domain results and
-                consumer types at explicit boundaries rather than embedding
-                consumer-specific state in the result.
-                """#
-            ) {
-                paragraph(
-                    #"""
-                    Prefer:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    Domain.Result
-                        -> ConsumerAdapter
-                        -> Consumer.Type
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    over embedding substantial consumer-specific state directly into the domain result.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The adapter is where semantic translation between domains normally belongs.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    See BoundaryAdaptationGuideline for lightweight protocol-conformance exceptions.
-                    """#
-                )
-            }
-
-        case .composition_roots_coordinate:
-            .init(
-                title: "Composition roots may coordinate presentation and execution",
-                summary: #"""
-                Allow outer orchestration to join execution, events, and presentation
-                while keeping the inner domain operation independent of the chosen
-                presenter.
-                """#
-            ) {
-                paragraph(
-                    #"""
-                    Separation does not require execution and presentation to exist in different processes, binaries, or even different orchestration functions.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    For example, a CLI command may legitimately do this:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    run domain operation
-                        ↓
-                    observe Event
-                        ↓
-                    update spinner
-                        ↓
-                    receive Result
-                        ↓
-                    render summary
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The important property is that the domain operation itself does not require that spinner or terminal renderer.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The outer composition layer is allowed to bring independently defined concerns together.
                     """#
                 )
             }

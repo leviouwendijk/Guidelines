@@ -6,11 +6,9 @@ public enum OperationalArchitectureGuideline:
 {
     case meaningful_boundaries
     case abstraction_and_layering_separate
-    case roles_not_required_types
     case preserve_meaningful_information
     case dependency_direction
     case composition_roots_join_concerns
-    case collapse_when_appropriate
 
     public var content: GuidelineContent {
         switch self {
@@ -19,8 +17,8 @@ public enum OperationalArchitectureGuideline:
                 title: "Use meaningful boundaries, not mandatory layers",
                 summary: #"""
                 Separate intent, preparation, execution, observation, outcome, and
-                presentation where that separation adds value, and collapse roles when a
-                smaller representation preserves the same meaning.
+                presentation where those distinctions are independently meaningful; do not
+                treat conceptual roles as mandatory layers.
                 """#
             ) {
                 paragraph(
@@ -74,76 +72,7 @@ public enum OperationalArchitectureGuideline:
 
                 paragraph(
                     #"""
-                    It does not require every function, method, or helper to become an operation object.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    A small operation may already be expressed completely by:
-                    """#
-                )
-
-                code(
-                    language: "swift",
-                    content: #"""
-                    Compare.Number.Decimal.exceeds(
-                        difference,
-                        tolerance: tolerance
-                    )
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Turning the same operation into:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    DecimalComparisonInput
-                        -> DecimalComparisonOperation
-                        -> DecimalComparisonResult
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    is not automatically more architectural.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The additional types should exist only when they carry useful meaning of their own.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Examples of reasons a value may earn a type include:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    it has invariants
-                    it is reused or passed around
-                    it crosses a boundary
-                    it needs to be inspected independently
-                    it is stored or transported
-                    it has a lifecycle beyond one call
-                    it improves readability or cohesion
-                    it is significant enough that callers benefit from naming it
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The smallest representation that preserves the meaningful architecture is generally preferred.
+                    The Operational Model chapter describes how these roles collapse for smaller operations and when a role earns a dedicated type. This chapter is concerned with where meaningful boundaries and dependency direction belong.
                     """#
                 )
             }
@@ -206,79 +135,6 @@ public enum OperationalArchitectureGuideline:
                 paragraph(
                     #"""
                     Prefer centralizing repeated meaning without adding representational ceremony that has no independent value.
-                    """#
-                )
-            }
-
-        case .roles_not_required_types:
-            .init(
-                title: "Roles",
-                summary: #"""
-                Treat Input, Resolution, Plan, Preflight, Execution, Event, Result,
-                Artifact, and Presentation as architectural roles rather than mandatory
-                concrete types.
-                """#
-            ) {
-                paragraph(
-                    #"""
-                    The richest form of the model is:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    Input
-                        ↓
-                    Resolution
-                        ↓
-                    Plan? / Preparation?
-                        ↓
-                    Preflight?
-                        ↓
-                    Execution ──────► Event*
-                        ↓
-                    Result ─────────► Artifact*
-                        ↓
-                    Projection / Adaptation
-                        ↓
-                    Presentation / Integration
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    These are roles, not mandatory concrete types.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The architecture is a vocabulary for finding meaningful boundaries. It is not a requirement that every operation manufacture an Input, ResolvedInput, Plan, Preflight, Event, Result, and Presenter.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    A role may be represented by:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    a dedicated type
-                    an existing domain type
-                    a tuple
-                    a primitive
-                    a helper function
-                    a stage internal to another operation
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    depending on the needs of the operation.
                     """#
                 )
             }
@@ -502,98 +358,6 @@ public enum OperationalArchitectureGuideline:
                 )
             }
 
-        case .collapse_when_appropriate:
-            .init(
-                title: "Collapse the model when appropriate",
-                summary: #"""
-                Use the smallest operational shape that preserves meaningful intent,
-                effects, observation, outcome, and presentation boundaries for the
-                operation at hand.
-                """#
-            ) {
-                paragraph(
-                    #"""
-                    A tiny pure operation may remain:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    values -> value
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    or:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    Input -> Result
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    A read or query may be:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    Input -> Resolution -> Result
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    A long-running pure operation may be:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    Input -> Execution -> Events + Result
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    A mutating operation may warrant:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    Input
-                        -> Resolution
-                        -> Plan
-                        -> Preflight
-                        -> Execution
-                        -> Events
-                        -> Result + Artifacts
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The test is not whether every box exists.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The test is whether domain intent, effects, observation, semantic outcome, and outward presentation remain separable where that separation has real value.
-                    """#
-                )
-            }
         }
     }
 }

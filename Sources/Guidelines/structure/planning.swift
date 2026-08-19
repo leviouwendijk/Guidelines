@@ -6,6 +6,7 @@ public enum PlanningGuideline:
 {
     case plan_when_valuable
     case inspect_what_executes
+    case preserve_plan_preconditions
     case domain_native_plans
 
     public var content: GuidelineContent {
@@ -148,13 +149,53 @@ public enum PlanningGuideline:
 
                 paragraph(
                     #"""
-                    If environmental state can invalidate a plan between planning and execution, that should be handled explicitly through preflight, freshness checks, plan invalidation, or another domain-appropriate mechanism.
+                    It should not silently turn execution into a second independent planning pass.
+                    """#
+                )
+            }
+
+        case .preserve_plan_preconditions:
+            .init(
+                title: "Preserve state-dependent plan preconditions",
+                summary: #"""
+                When a plan depends on mutable state, retain enough precondition
+                information to detect material drift before execution.
+                """#
+            ) {
+                paragraph(
+                    #"""
+                    A plan prepared from mutable state should preserve enough information to determine whether the work it describes is still the work that was inspected.
                     """#
                 )
 
                 paragraph(
                     #"""
-                    It should not silently turn execution into a second independent planning pass.
+                    Domain-appropriate preconditions may include:
+                    """#
+                )
+
+                code(
+                    language: "text",
+                    content: #"""
+                    content fingerprints
+                    versions or revisions
+                    resource identifiers
+                    expected before-state
+                    base commits
+                    ETags or equivalent remote versions
+                    resolved source/destination identities
+                    """#
+                )
+
+                quote(
+                    #"""
+                    A reviewed plan should not silently become different work because its environment changed.
+                    """#
+                )
+
+                paragraph(
+                    #"""
+                    The exact guard is domain-relative. Preserve only the preconditions needed to detect drift that would materially change the meaning or safety of execution.
                     """#
                 )
             }
