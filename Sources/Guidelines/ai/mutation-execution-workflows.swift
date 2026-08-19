@@ -12,6 +12,10 @@ public enum MutationExecutionWorkflowGuideline:
     case embedded_language_boundaries
     case transport_integrity
     case split_large_operations
+    case publication_scope
+    case proof_and_convenience
+    case final_state_handoff
+    case context_refresh
     case guidelines_publish_refresh
 
     public var content: GuidelineContent {
@@ -31,7 +35,8 @@ public enum MutationExecutionWorkflowGuideline:
                         "ZMP - Zsh Mutation Pass: a pasteable, session-safe zsh mutation and proof pass for one coherent domain.",
                         "SDP - Staged Domain Pass: split a larger dependency graph into separately provable stages so downstream work cannot advance prematurely.",
                         "GPR - Guidelines Publish-Refresh: prove Guidelines, publish it with `gm commit \"<description>\" --push`, then refresh and rebuild GuidelinesCLI with `sbm pack -b`.",
-                        "Requests such as `use an LRP`, `give me a ZMP`, `split this as an SDP`, and `finish with GPR` refer to these complete workflows.",
+                        "CR - Context Refresh: after the authoritative workflow state is complete, refresh user-designated Concatenation context directories with `con any -a -f xml`.",
+                        "Requests such as `use an LRP`, `give me a ZMP`, `split this as an SDP`, `finish with GPR`, or `finish with CR in <directory>` refer to these complete workflows.",
                     ]
                 )
             }
@@ -231,6 +236,7 @@ public enum MutationExecutionWorkflowGuideline:
                         "Give each stage its own relevant preflight, mutation, parse or lint proof, build, TestFlows, and generated-output assertions.",
                         "Publish an upstream library only after its required proof succeeds.",
                         "Refresh or rebuild a downstream consumer only after the upstream publication succeeds.",
+                        "When a later handoff or generated context should represent the completed operation, materialize it from the final resolved state rather than from an intermediate stage.",
                     ]
                 )
 
@@ -258,6 +264,118 @@ public enum MutationExecutionWorkflowGuideline:
                 )
             }
 
+        case .publication_scope:
+            .init(
+                title: "Verify publication scope before broad commit helpers",
+                summary: #"""
+                Before a helper stages or commits a broad working tree, verify
+                that the repository contains only the changes intended for
+                that publication boundary.
+                """#
+            ) {
+                list(
+                    style: .unordered,
+                    items: [
+                        "Treat a broad commit helper as an external-effect boundary even when the helper itself is familiar.",
+                        "Inspect the current changed-file scope before invoking helpers that may stage the whole working tree.",
+                        "When the intended mutation has a known file set, unexpected dirty or untracked paths should block publication until they are understood.",
+                        "Do not make publication-scope checking unnecessarily brittle: the important invariant is that every change being committed is understood and belongs to the intended publication.",
+                        "Run the final diff and whitespace checks before publication, not only before an earlier build.",
+                        "If publication is blocked by unrelated work, preserve that work and surface the unexpected paths instead of staging around them implicitly.",
+                    ]
+                )
+
+                quote(
+                    "A successful build proves the source can build; it does not prove every dirty file belongs in the next commit."
+                )
+            }
+
+        case .proof_and_convenience:
+            .init(
+                title: "Distinguish correctness proof from post-success convenience",
+                summary: #"""
+                A workflow should make clear which stages establish correctness
+                and which stages merely prepare useful state for later work.
+                """#
+            ) {
+                list(
+                    style: .unordered,
+                    items: [
+                        "Parsing, linting, builds, TestFlows, renders, runtime checks, and requested output assertions are correctness proof when they establish the behavior being changed.",
+                        "Context refreshes, pretty diffs, status summaries, cache warming, and similar handoff preparation are normally post-success conveniences.",
+                        "A failed convenience stage must not retroactively describe a successfully proved and published source mutation as failed.",
+                        "Report partial final outcomes precisely, for example: `source workflow succeeded; context refresh failed`.",
+                        "A normally convenient stage becomes required when the user explicitly makes its output part of the requested deliverable or proof.",
+                        "Do not weaken correctness gates merely because a later convenience stage is expected to run.",
+                    ]
+                )
+            }
+
+        case .final_state_handoff:
+            .init(
+                title: "Generate handoff context from the final resolved state",
+                summary: #"""
+                Context intended for the next interaction should represent the
+                completed dependency graph rather than an intermediate source state.
+                """#
+            ) {
+                list(
+                    style: .unordered,
+                    items: [
+                        "For library -> consumer workflows, finish the required upstream publication and downstream package refresh before generating final handoff context.",
+                        "For generator -> generated-output workflows, generate and prove the output before refreshing context that is meant to describe the completed result.",
+                        "For multi-repository SDPs, prefer one final context refresh after the last authoritative downstream stage instead of repeatedly materializing intermediate snapshots.",
+                        "Generate intermediate context only when it has an independent debugging or review purpose.",
+                        "The final handoff should make the next interaction start from the state the user can actually build, run, or inspect.",
+                    ]
+                )
+            }
+
+        case .context_refresh:
+            .init(
+                title: "Refresh designated Concatenation context after success",
+                summary: #"""
+                CR refreshes user-designated context directories after the
+                authoritative mutation, proof, publication, and consumer
+                refresh stages have completed.
+                """#
+            ) {
+                paragraph(
+                    #"""
+                    Shorthand: CR - Context Refresh.
+                    """#
+                )
+
+                list(
+                    style: .ordered,
+                    items: [
+                        "Use only context directories explicitly supplied by the user or already established for the current workflow; do not guess additional directories.",
+                        "Run the refresh after the final authoritative state has been reached.",
+                        "Use the established standard command `con any -a -f xml` unless the context has explicitly different requirements.",
+                        "Run each context directory in an isolated subshell or equivalent path-scoped execution so the user's parent working directory remains unchanged.",
+                        "When several context directories are supplied, identify failures by directory rather than hiding them behind one generic refresh failure.",
+                        "Treat CR as a post-success convenience unless fresh concatenation output is explicitly part of the requested proof or deliverable.",
+                        "Because `-a` permits otherwise protected secret-bearing files to participate in local concatenation, refreshing a designated local context does not authorize printing, uploading, attaching, or otherwise exposing its generated contents.",
+                    ]
+                )
+
+                code(
+                    language: "zsh",
+                    content: #"""
+                    CONTEXT_DIR="$HOME/path/to/context"
+
+                    (
+                        cd "$CONTEXT_DIR" &&
+                            con any -a -f xml
+                    ) || {
+                        print -u2 -- \
+                            "FAIL: CR context refresh: $CONTEXT_DIR"
+                        false
+                    }
+                    """#
+                )
+            }
+
         case .guidelines_publish_refresh:
             .init(
                 title: "Use the Guidelines publish-refresh workflow",
@@ -276,11 +394,13 @@ public enum MutationExecutionWorkflowGuideline:
                     style: .ordered,
                     items: [
                         "Mutate Guidelines and run targeted parse checks, `git diff --check`, and `swift build`.",
+                        "Before publication, verify that the working-tree scope contains only understood changes intended for this Guidelines publication.",
                         "After that stage succeeds, begin the publication stage from a fresh shell prompt.",
                         "From the Guidelines repository run `gm commit \"<description>\" --push`.",
                         "After the push succeeds, begin the downstream refresh stage from a fresh shell prompt.",
                         "From GuidelinesCLI run `sbm pack -b` to refresh package sources and rebuild immediately.",
                         "For ordinary GuidelinesCLI work without an upstream package/source refresh, normal `sbm` remains sufficient.",
+                        "When CR is requested for this workflow, run it only after `sbm pack -b` succeeds so the concatenated handoff represents both the published library and the refreshed consumer.",
                     ]
                 )
             }

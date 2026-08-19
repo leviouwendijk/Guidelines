@@ -101,7 +101,7 @@ public enum GuidelineManual {
 
                 paragraph(
                     #"""
-                    Recurring workflows use stable shorthand: LRP for line-ranged manual patches, ZMP for pasteable zsh mutation passes, SDP for staged dependency-aware operations, and GPR for the Guidelines publish-refresh sequence.
+                    Recurring workflows use stable shorthand: LRP for line-ranged manual patches, ZMP for pasteable zsh mutation passes, SDP for staged dependency-aware operations, GPR for the Guidelines publish-refresh sequence, and CR for final-state Concatenation context refresh.
                     """#
                 )
             },
