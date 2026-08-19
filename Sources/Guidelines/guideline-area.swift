@@ -7,4 +7,5 @@ public enum GuidelineArea:
     case design
     case ergonomics
     case structure
+    case ai
 }

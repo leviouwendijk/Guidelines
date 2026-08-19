@@ -65,6 +65,27 @@ public enum GuidelineManual {
             ),
 
             .init(
+                area: .ai,
+                key: "web_interface_interactions",
+                title: "Web-based Interface Interactions",
+                guidelines: WebInterfaceInteractionGuideline.allCases.map {
+                    .web_interface_interactions($0)
+                }
+            ) {
+                paragraph(
+                    #"""
+                    Instructions for AI-assisted coding work performed through a web or chat interface, where source context and terminal state are supplied to the assistant and changes are returned for local application.
+                    """#
+                )
+
+                paragraph(
+                    #"""
+                    The objective is accurate, auditable handoff: use supplied state, address edits precisely, preserve the user's local session, and prove changes through the repository's real execution path.
+                    """#
+                )
+            },
+
+            .init(
                 area: .structure,
                 key: "principles",
                 title: "Structural Principles",

@@ -31,6 +31,10 @@ public enum Guideline:
         SourceOrganizationGuideline
     )
 
+    case web_interface_interactions(
+        WebInterfaceInteractionGuideline
+    )
+
     case artifacts(
         ArtifactGuideline
     )
@@ -126,6 +130,9 @@ public enum Guideline:
         case .source_organization(let guideline):
             guideline.content
 
+        case .web_interface_interactions(let guideline):
+            guideline.content
+
         case .artifacts(let guideline):
             guideline.content
 
@@ -217,6 +224,9 @@ public enum Guideline:
         case .source_organization:
             .ergonomics
 
+        case .web_interface_interactions:
+            .ai
+
         case .artifacts:
             .structure
 
@@ -295,6 +305,9 @@ public enum Guideline:
 
         case .source_organization(let guideline):
             "ergonomics.source_organization.\(guideline.rawValue)"
+
+        case .web_interface_interactions(let guideline):
+            "ai.web_interface_interactions.\(guideline.rawValue)"
 
         case .artifacts(let guideline):
             "structure.artifacts.\(guideline.rawValue)"
