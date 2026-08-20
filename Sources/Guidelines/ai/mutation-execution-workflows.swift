@@ -10,6 +10,7 @@ public enum MutationExecutionWorkflowGuideline:
     case surface_failure_stage
     case workflow_presentation
     case interactive_shell_paste_syntax
+    case shell_parameter_safety
     case embedded_language_boundaries
     case transport_integrity
     case split_large_operations
@@ -208,6 +209,42 @@ public enum MutationExecutionWorkflowGuideline:
                     print -- "=== Generated-output proof ==="
 
                     command_c
+                    """#
+                )
+            }
+
+        case .shell_parameter_safety:
+            .init(
+                title: "Do not use zsh special parameters as scratch variables",
+                summary: #"""
+                Variable naming in an interactive shell can have execution
+                semantics. Generated zsh passes must not accidentally mutate
+                shell state by assigning to special or tied parameters.
+                """#
+            ) {
+                list(
+                    style: .unordered,
+                    items: [
+                        "Before choosing temporary or loop variable names in zsh, account for special, reserved, and tied shell parameters rather than treating every identifier as an ordinary local variable.",
+                        "In zsh, `path` is a special array tied directly to `$PATH`. Assigning filenames to `path` therefore rewrites the executable search path and can immediately make commands such as `rg`, `mkdir`, and `cat` unavailable.",
+                        "Never use `path` as a scratch variable, loop variable, or generic pathname variable in a pasteable zsh pass. Prefer neutral names such as `file`, `entry`, `target`, `source_file`, or a domain-specific name.",
+                        "Treat accidental assignment to a shell special parameter as session-state corruption even when the intended source mutation has not yet executed.",
+                        "If a generated pass corrupts the interactive shell state this way, prefer restoring a clean shell with `exec zsh` before retrying rather than layering speculative repairs onto the damaged session.",
+                        "Session-safety review therefore includes shell parameter names in addition to cwd, shell options, environment variables, traps, aliases, temporary functions, and other persistent execution state.",
+                    ]
+                )
+
+                code(
+                    language: "zsh",
+                    content: #"""
+                    files=(
+                        "Sources/One.swift"
+                        "Sources/Two.swift"
+                    )
+
+                    for file in "${files[@]}"; do
+                        rg -n "pattern" "$file"
+                    done
                     """#
                 )
             }
