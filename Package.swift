@@ -9,10 +9,17 @@ let package = Package(
             name: "Guidelines",
             targets: ["Guidelines"]
         ),
+        .executable(
+            name: "guidetest",
+            targets: ["GuidelinesTest"]
+        ),
     ],
     targets: [
         .target(
             name: "Guidelines"
+        ),
+        .executableTarget(
+            name: "GuidelinesTest"
         ),
     ],
     swiftLanguageModes: [.v6]
