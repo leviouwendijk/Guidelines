@@ -170,6 +170,10 @@ public enum WebInterfaceInteractionGuideline:
                         "Keep TestFlow executable product names package-specific rather than generic names such as `test`, `tests`, or `testflows`; dependency graphs may contain several packages exposing their own flow executables.",
                         "Run the relevant flow directly, typically as `swift run <flow-bin> --verbose`, rather than invoking `swift test`.",
                         "Add or extend TestFlows when changed behavior has a meaningful executable proof boundary. Do not manufacture a flow for a trivial syntax-only change when parse or build proof is sufficient.",
+                        "Dedicated Swift test executables are allowed when TestFlows cannot cleanly represent the required proof case, when using TestFlows would interfere with the behavior being exercised, or when the test needs to own a specialized execution environment that does not belong in the shared harness.",
+                        "Treat a dedicated test executable as a deliberate exception rather than a second default testing architecture. Prefer TestFlows whenever it can express the proof without materially changing what is being tested.",
+                        "A dedicated test binary may live under a package-specific target such as `Sources/GuidelinesTest/` and expose a short package-specific executable such as `guidetest`. It does not need a `TestFlows` suffix because it is not a TestFlows target.",
+                        "Keep dedicated test executable names specific enough to avoid downstream product collisions, just as with TestFlows executables.",
                         "Preserve and restore tracked TestFlow run-state when executing a flow would otherwise create an unrelated working-tree diff.",
                     ]
                 )
@@ -188,6 +192,9 @@ public enum WebInterfaceInteractionGuideline:
 
                     Another existing pattern
                         WritersTestFlows -> wtest
+
+                    Deliberate dedicated-test exception
+                        GuidelinesTest -> guidetest
 
                     Prefer:
                         short
@@ -225,6 +232,7 @@ public enum WebInterfaceInteractionGuideline:
                         "For a normal Swift library, use swift build unless that repository defines a more specific build workflow.",
                         "For an SBM-managed Swift binary, use sbm when proving the runnable binary because swift build alone does not update the installed executable.",
                         "For Swift package behavior covered by TestFlows, run the relevant flow executable, typically `swift run <flow-bin> --verbose`, when changed behavior has a flow or a new flow was added. TestFlows is the default testing path; do not substitute `swift test`, XCTest, or Swift Testing by habit.",
+                        "When the repository deliberately uses a dedicated test executable because TestFlows cannot faithfully cover that proof boundary, run that executable through its real package product instead of forcing the case back into TestFlows.",
                         "Preserve and restore tracked TestFlow run-state when executing a flow would otherwise create an unrelated diff.",
                         "For generators and websites, run the project-specific generation command when the bug concerns generated output.",
                         "Inspect the generated HTML, JavaScript, CSS, JSON, routes, or artifacts for the exact property being fixed; compilation alone is not proof of generated behavior.",
