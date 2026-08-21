@@ -7,6 +7,7 @@ public enum WebInterfaceInteractionGuideline:
     case provided_state
     case line_ranged_context
     case pasteable_shell_passes
+    case testflows_by_default
     case execution_proof
 
     public var content: GuidelineContent {
@@ -147,6 +148,68 @@ public enum WebInterfaceInteractionGuideline:
                 )
             }
 
+        case .testflows_by_default:
+            .init(
+                title: "Use TestFlows as the default Swift test harness",
+                summary: #"""
+                For Swift packages, default to dedicated TestFlows executable
+                targets instead of XCTest, Swift Testing, or `swift test`.
+                """#
+            ) {
+                list(
+                    style: .unordered,
+                    items: [
+                        "Do not introduce XCTest, Swift Testing, or another framework-backed SwiftPM test target by default. Use such a system only when the repository already deliberately depends on it or the user explicitly requests it.",
+                        "Use the TestFlows library as the default Swift testing mechanism. Expose tests through a dedicated executable target so flow orchestration, diagnostics, formatting, and exit behavior remain under repository control.",
+                        "Avoiding XCTest and Swift Testing also avoids importing their testing machinery into CLI-oriented toolchains where it can conflict with or complicate use of the native Swift tool set.",
+                        "When `swift package init` or another SwiftPM initializer creates a default `.testTarget(...)` and `Tests/` tree, normally remove both while shaping the package. Treat that generated testing scaffold as disposable unless there is an explicit reason to retain it.",
+                        "For a library or executable package, typically place the flow executable target under `Sources/<PackageName>TestFlows/`, for example `Sources/AccountingTestFlows/` or `Sources/WritersTestFlows/`.",
+                        "The TestFlows executable target should depend on the package surface it exercises and on the TestFlows library rather than importing XCTest or Swift Testing.",
+                        "Expose the TestFlows target through a short executable product that is convenient to run repeatedly. For example, `AccountingTestFlows` uses `acctest`.",
+                        "`WritersTestFlows` using `wtest` illustrates the lower bound on abbreviation: it is convenient, but a shorthand derived from only one leading letter is already prone to collision with another downstream package. Prefer a slightly more distinctive executable name when a short name could plausibly collide.",
+                        "Keep TestFlow executable product names package-specific rather than generic names such as `test`, `tests`, or `testflows`; dependency graphs may contain several packages exposing their own flow executables.",
+                        "Run the relevant flow directly, typically as `swift run <flow-bin> --verbose`, rather than invoking `swift test`.",
+                        "Add or extend TestFlows when changed behavior has a meaningful executable proof boundary. Do not manufacture a flow for a trivial syntax-only change when parse or build proof is sufficient.",
+                        "Preserve and restore tracked TestFlow run-state when executing a flow would otherwise create an unrelated working-tree diff.",
+                    ]
+                )
+
+                code(
+                    language: "text",
+                    content: #"""
+                    Typical package shape
+
+                    Sources/
+                        Accounting/
+                        AccountingTestFlows/
+
+                    Package products
+                        AccountingTestFlows -> acctest
+
+                    Another existing pattern
+                        WritersTestFlows -> wtest
+
+                    Prefer:
+                        short
+                        memorable
+                        package-specific
+                        unlikely to collide downstream
+
+                    Default proof
+                        swift run <flow-bin> --verbose
+
+                    Not the default
+                        XCTest
+                        Swift Testing
+                        swift test
+                    """#
+                )
+
+                quote(
+                    "Test execution is an executable package capability, not a framework convention imposed by SwiftPM scaffolding."
+                )
+            }
+
         case .execution_proof:
             .init(
                 title: "Prove changes through the real execution path",
@@ -161,7 +224,7 @@ public enum WebInterfaceInteractionGuideline:
                         "Use targeted syntax or parser checks before heavier proof when useful, then run git diff --check.",
                         "For a normal Swift library, use swift build unless that repository defines a more specific build workflow.",
                         "For an SBM-managed Swift binary, use sbm when proving the runnable binary because swift build alone does not update the installed executable.",
-                        "In repositories that use TestFlows, run the relevant flow executable, typically swift run <flow-bin> --verbose, when changed behavior has a flow or a new flow was added; do not substitute swift test by habit.",
+                        "For Swift package behavior covered by TestFlows, run the relevant flow executable, typically `swift run <flow-bin> --verbose`, when changed behavior has a flow or a new flow was added. TestFlows is the default testing path; do not substitute `swift test`, XCTest, or Swift Testing by habit.",
                         "Preserve and restore tracked TestFlow run-state when executing a flow would otherwise create an unrelated diff.",
                         "For generators and websites, run the project-specific generation command when the bug concerns generated output.",
                         "Inspect the generated HTML, JavaScript, CSS, JSON, routes, or artifacts for the exact property being fixed; compilation alone is not proof of generated behavior.",
