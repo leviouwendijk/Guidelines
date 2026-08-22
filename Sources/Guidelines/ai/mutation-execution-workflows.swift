@@ -16,6 +16,7 @@ public enum MutationExecutionWorkflowGuideline:
     case split_large_operations
     case publication_scope
     case proof_and_convenience
+    case pass_history_persistence
     case final_state_handoff
     case context_refresh
     case guidelines_publish_refresh
@@ -403,6 +404,33 @@ public enum MutationExecutionWorkflowGuideline:
                         "Report partial final outcomes precisely, for example: `source workflow succeeded; context refresh failed`.",
                         "A normally convenient stage becomes required when the user explicitly makes its output part of the requested deliverable or proof.",
                         "Do not weaken correctness gates merely because a later convenience stage is expected to run.",
+                    ]
+                )
+            }
+
+        case .pass_history_persistence:
+            .init(
+                title: "Persist pass execution state only in a user-designated history file",
+                summary: #"""
+                When the user provides or explicitly designates a pass-history
+                file, maintain it as durable execution state so later
+                interactions can recover what actually happened.
+                """#
+            ) {
+                list(
+                    style: .unordered,
+                    items: [
+                        "A pass-history target exists only when the user has supplied or explicitly designated one for the relevant project or workflow. If none was supplied, do not invent, infer, search for, create, or write a fallback history file.",
+                        "Do not derive a history location from repository conventions, the current working directory, unrelated prior workflows, remembered paths, `.tasks`, filenames, or other ambient context. The target itself is user-provided execution context.",
+                        "When a history file is designated, generated mutation passes should update that file as part of the pass itself rather than relying only on a conversational summary that disappears with chat context.",
+                        "Record the actual resolved parameters that materially determined execution, not merely the intended operation. Depending on the pass, these can include repository and working scope, target files or ranges, expected heads or refs, mutation anchors, command flags and options, selected inputs, generated identifiers, versions, routes, or other domain-specific parameters.",
+                        "Record results according to what actually occurred: successful mutations, meaningful no-op or unchanged outcomes, decisive proof commands and outcomes, publication commits or refs, pushes, package refreshes, deployments, generated artifacts, and other externally meaningful effects.",
+                        "Append meaningful intermediate failures when they occur. Preserve the failure stage, relevant operation or command, decisive error or outcome, and the state left behind strongly enough that another interaction can safely determine what ran and what did not.",
+                        "When a later repair or retry succeeds, append that repair and its result rather than rewriting or erasing the earlier failure. The history should preserve the execution sequence that produced the current state.",
+                        "After a significant pass or publication boundary, record the current next step, remaining blocked work, or authoritative continuation point when one exists.",
+                        "Make history entries concise but exact. Preserve values and outcomes needed for recovery; do not dump indiscriminate command output when a smaller structured record captures the same execution state.",
+                        "Treat the history as cross-interaction recovery state: a fresh interaction given the designated file should be able to distinguish planned work from executed work, successful stages from failed or skipped stages, and the current authoritative continuation point.",
+                        "If a designated history update is part of the workflow, do not claim durable handoff completeness when the required append did not occur.",
                     ]
                 )
             }
