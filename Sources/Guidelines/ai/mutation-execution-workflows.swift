@@ -6,6 +6,7 @@ public enum MutationExecutionWorkflowGuideline:
 {
     case workflow_shorthand
     case preflight_before_writes
+    case replay_safe_mutations
     case conditionally_chain_stages
     case surface_failure_stage
     case workflow_presentation
@@ -61,6 +62,34 @@ public enum MutationExecutionWorkflowGuideline:
                         "Assert stable semantic boundaries such as required symbols, identifiers, generated anchors, or expected call sites when their absence means the mutation should be reconsidered.",
                         "Do not make preflight gratuitously brittle by asserting unrelated formatting or whole-file equality when narrower semantic checks are sufficient.",
                         "If current state violates an important precondition, fail closed and request or inspect fresh state rather than guessing.",
+                    ]
+                )
+            }
+
+        case .replay_safe_mutations:
+            .init(
+                title: "Make mutating passes replay-safe from the strongest available state",
+                summary: #"""
+                Protect automated mutations from damaging reruns by proving
+                enough current state to know whether the pass is applicable.
+                Use revision identity when it is available and meaningful, but
+                approximate replay safety from other observable state rather
+                than omitting it when no commit or HEAD boundary exists.
+                """#
+            ) {
+                list(
+                    style: .unordered,
+                    items: [
+                        "Treat replay safety as best-effort state classification, not as a requirement that every pass have a Git commit hash, clean repository generation, or other single universal marker.",
+                        "Before a ZMP writes, classify enough current state to distinguish the intended pre-state, a recognizable intended post-state, and ambiguous or partial state when practical.",
+                        "Use the strongest relevant guards that are actually available. Depending on the operation these may include branch identity, HEAD, commit hashes, local or remote refs, source digests, exact semantic anchors, expected presence or absence, replacement counts, file state, dirty or staged scope, persisted workflow markers, domain-state queries, or other observable facts tied to pass applicability.",
+                        "When strong revision identity is unavailable, insufficient, or irrelevant, approximate replay safety from narrower observable state rather than dropping replay protection entirely.",
+                        "Prefer multiple independent guards when one signal does not describe the complete mutation state. A matching HEAD, for example, does not prove the absence or meaning of uncommitted working-tree changes.",
+                        "Where the intended post-state can be recognized unambiguously, prefer the state machine `expected pre-state -> mutate`, `intended post-state -> no-op and prove`, `anything else -> fail closed`.",
+                        "Do not force universal idempotence onto ambiguous partial mutations. If a partially applied state cannot be interpreted safely, stop before further mutation and construct a continuation or repair pass against the exact observed state.",
+                        "Re-check a critical applicability signal immediately before a consequential write or external effect when meaningful drift could occur between preflight and execution.",
+                        "Guard commits, pushes, deployments, deletions, messages, payments, and other externally observable or non-repeatable effects separately; replay-safe source mutation does not automatically make later effects replay-safe.",
+                        "LRPs and manual snippet passes may include equivalent applicability or replay guards when useful. For automated ZMPs, make such protection the default whenever accidental replay could duplicate, corrupt, or wrongly advance mutation state.",
                     ]
                 )
             }
