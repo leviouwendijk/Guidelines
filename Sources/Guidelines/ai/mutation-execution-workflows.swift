@@ -601,6 +601,8 @@ public enum MutationExecutionWorkflowGuideline:
                         "Treat Agentic preflight and invocation results as authoritative execution state. Update later reasoning from returned results rather than continuing from stale assumptions about repository, workspace, or mutation state.",
                         "Tool presence does not bypass risk, policy, approval, workspace, or execution boundaries. Respect the manifest's risk metadata and the runtime decision returned for the actual invocation.",
                         "Treat a capability manifest as a workspace- and session-scoped snapshot rather than a permanent hard-coded inventory. If a newer manifest is supplied, the newer declared surface supersedes older assumptions.",
+                        "Before constructing calls for `agentic host bridge`, refresh or read the live capability manifest for the exact target workspace. Do not carry a manifest from another workspace forward merely because the same Agentic binary may expose a similar tool set.",
+                        "Treat `agentic host bridge` as an I/O transport around the normal governed host invocation path, not as a second tool registry or execution authority. It must preserve the same workspace authorization, preflight, risk, approval, and runtime policy boundaries, and the returned host envelope is authoritative execution state.",
                         "When no Agentic capability manifest is supplied, do not assume a particular Agentic host or tool inventory is available merely because it existed in another session.",
                     ]
                 )

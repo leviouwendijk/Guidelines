@@ -451,6 +451,44 @@ public enum NestedAPIDesignGuideline:
                 }
                 """#
             )
+
+            paragraph(
+                #"""
+                These forms solve slightly different ownership problems. Prefer PascalCase nested enum types when the access path is a genuinely static namespace. When the desired call-site segment should instead be a lowercase value such as io, toolcall, or json, prefer a struct-backed accessor: expose the value through a property or static let, keep the backing type PascalCase, and nest further local capability structs where that improves the phrase. Do not create lowercase enum type names merely to manufacture lowercase dotted API segments.
+                """#
+            )
+
+            code(
+                language: "swift",
+                content: #"""
+                enum AgenticCLI {
+                    static let io = IO()
+                
+                    struct IO: Sendable {
+                        let toolcall = ToolCall()
+                        let json = JSON()
+                        let error = ErrorOutput()
+                        let stdin = Stdin()
+                
+                        struct ToolCall: Sendable {}
+                        struct JSON: Sendable {}
+                        struct ErrorOutput: Sendable {}
+                        struct Stdin: Sendable {}
+                    }
+                }
+                
+                AgenticCLI.io.toolcall.read()
+                AgenticCLI.io.json.write(envelope)
+                AgenticCLI.io.error.write(error)
+                AgenticCLI.io.stdin.reconnectToTerminal()
+                """#
+            )
+
+            paragraph(
+                #"""
+                The struct-backed form does not require meaningful mutable state. It can exist primarily to express semantic ownership and keep each operation name small while still giving lowercase call-site categories a normal Swift value representation.
+                """#
+            )
             }
         }
     }
