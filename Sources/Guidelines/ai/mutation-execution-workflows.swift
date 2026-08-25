@@ -21,6 +21,7 @@ public enum MutationExecutionWorkflowGuideline:
     case pass_history_persistence
     case final_state_handoff
     case context_refresh
+    case agentic_capability_manifest
     case guidelines_publish_refresh
 
     public var content: GuidelineContent {
@@ -578,6 +579,30 @@ public enum MutationExecutionWorkflowGuideline:
                         false
                     }
                     """#
+                )
+            }
+
+        case .agentic_capability_manifest:
+            .init(
+                title: "Treat supplied Agentic capability manifests as authoritative",
+                summary: #"""
+                When an Agentic capability manifest is supplied, use it as the
+                authoritative declaration of the local Agentic tool surface for
+                that workspace and session.
+                """#
+            ) {
+                list(
+                    style: .unordered,
+                    items: [
+                        "Treat the tools, input schemas, and risk metadata declared by the supplied Agentic capability manifest as the authoritative local Agentic tool surface for that workspace and session.",
+                        "Do not assume undeclared Agentic tools exist, and do not invent tool names, fields, enum cases, or capabilities that are absent from the manifest.",
+                        "When a declared typed Agentic tool covers the required operation, prefer that tool over constructing an equivalent shell, subprocess, or ad-hoc command path.",
+                        "Follow each declared input schema exactly. Use the Agentic preflight path before consequential mutation or other review-gated execution rather than treating tool availability as approval.",
+                        "Treat Agentic preflight and invocation results as authoritative execution state. Update later reasoning from returned results rather than continuing from stale assumptions about repository, workspace, or mutation state.",
+                        "Tool presence does not bypass risk, policy, approval, workspace, or execution boundaries. Respect the manifest's risk metadata and the runtime decision returned for the actual invocation.",
+                        "Treat a capability manifest as a workspace- and session-scoped snapshot rather than a permanent hard-coded inventory. If a newer manifest is supplied, the newer declared surface supersedes older assumptions.",
+                        "When no Agentic capability manifest is supplied, do not assume a particular Agentic host or tool inventory is available merely because it existed in another session.",
+                    ]
                 )
             }
 
