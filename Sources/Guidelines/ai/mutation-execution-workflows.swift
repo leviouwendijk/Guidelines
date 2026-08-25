@@ -5,6 +5,7 @@ public enum MutationExecutionWorkflowGuideline:
     CaseIterable
 {
     case workflow_shorthand
+    case shell_pass_subshell_boundary
     case preflight_before_writes
     case replay_safe_mutations
     case conditionally_chain_stages
@@ -36,12 +37,63 @@ public enum MutationExecutionWorkflowGuideline:
                     style: .unordered,
                     items: [
                         "LRP - Line-Range Pass: exact filepath, operation, and current line range with every manual edit; bottom-up within each file.",
-                        "ZMP - Zsh Mutation Pass: a pasteable, session-safe zsh mutation and proof pass for one coherent domain.",
+                        "ZMP - Zsh Mutation Pass: a pasteable, session-safe zsh mutation and proof pass for one coherent domain, enclosed as an outer subshell by default.",
+                        "BMP - Bash Mutation Pass: the bash twin of ZMP, with the same mutation, proof, replay-safety, and default outer-subshell requirements.",
                         "SDP - Staged Domain Pass: split a larger dependency graph into separately provable stages so downstream work cannot advance prematurely.",
                         "GPR - Guidelines Publish-Refresh: prove Guidelines, publish it with `gm commit \"<description>\" --push`, then refresh and rebuild GuidelinesCLI with `sbm pack -b`.",
                         "CR - Context Refresh: after the authoritative workflow state is complete, refresh user-designated Concatenation context directories with `con any -a -f xml`.",
-                        "Requests such as `use an LRP`, `give me a ZMP`, `split this as an SDP`, `finish with GPR`, or `finish with CR in <directory>` refer to these complete workflows.",
+                        "Requests such as `use an LRP`, `give me a ZMP`, `give me a BMP`, `split this as an SDP`, `finish with GPR`, or `finish with CR in <directory>` refer to these complete workflows.",
                     ]
+                )
+            }
+
+        case .shell_pass_subshell_boundary:
+            .init(
+                title: "Wrap interactive mutation passes in a subshell by default",
+                summary: #"""
+                ZMP and BMP execution should be isolated from the user's
+                long-lived interactive shell unless the pass specifically
+                requires parent-shell mutation.
+                """#
+            ) {
+                list(
+                    style: .unordered,
+                    items: [
+                        "For every returned ZMP or BMP intended to be pasted or executed from an interactive shell, make the entire executable pass an outer subshell `( ... )` by default.",
+                        "Treat the subshell as the pass boundary, not merely as a wrapper around individual `cd` calls or risky commands. Setup, mutation, proof, cleanup, and dependent execution for that pass belong inside the closure unless a stage is intentionally split into a separate pass.",
+                        "This isolation prevents temporary cwd changes, shell options such as `errexit`, `nounset`, and `pipefail`, traps, variables, functions, aliases, and ordinary `exit` failure paths from changing or terminating the caller's long-lived interactive shell.",
+                        "Inside the subshell, `exit 1`, `set -e`, `set -u`, and `set -o pipefail` may be used when they improve failure semantics because they terminate or modify only the isolated pass process.",
+                        "Do not omit the outer subshell merely because a pass appears simple. Session isolation is the default transport shape for ZMP and BMP output.",
+                        "Omit the outer subshell only when the pass specifically must mutate the parent shell, or when execution is already inside an explicitly isolated non-interactive shell boundary that makes another subshell semantically unnecessary. State that reason explicitly.",
+                    ]
+                )
+
+                code(
+                    language: "zsh",
+                    content: #"""
+                    (
+                        set -e
+                        set -u
+                        set -o pipefail
+
+                        command_a
+                        command_b
+                    )
+                    """#
+                )
+
+                code(
+                    language: "bash",
+                    content: #"""
+                    (
+                        set -e
+                        set -u
+                        set -o pipefail
+
+                        command_a
+                        command_b
+                    )
+                    """#
                 )
             }
 
@@ -81,7 +133,7 @@ public enum MutationExecutionWorkflowGuideline:
                     style: .unordered,
                     items: [
                         "Treat replay safety as best-effort state classification, not as a requirement that every pass have a Git commit hash, clean repository generation, or other single universal marker.",
-                        "Before a ZMP writes, classify enough current state to distinguish the intended pre-state, a recognizable intended post-state, and ambiguous or partial state when practical.",
+                        "Before a ZMP or BMP writes, classify enough current state to distinguish the intended pre-state, a recognizable intended post-state, and ambiguous or partial state when practical.",
                         "Use the strongest relevant guards that are actually available. Depending on the operation these may include branch identity, HEAD, commit hashes, local or remote refs, source digests, exact semantic anchors, expected presence or absence, replacement counts, file state, dirty or staged scope, persisted workflow markers, domain-state queries, or other observable facts tied to pass applicability.",
                         "When strong revision identity is unavailable, insufficient, or irrelevant, approximate replay safety from narrower observable state rather than dropping replay protection entirely.",
                         "Prefer multiple independent guards when one signal does not describe the complete mutation state. A matching HEAD, for example, does not prove the absence or meaning of uncommitted working-tree changes.",
@@ -89,7 +141,7 @@ public enum MutationExecutionWorkflowGuideline:
                         "Do not force universal idempotence onto ambiguous partial mutations. If a partially applied state cannot be interpreted safely, stop before further mutation and construct a continuation or repair pass against the exact observed state.",
                         "Re-check a critical applicability signal immediately before a consequential write or external effect when meaningful drift could occur between preflight and execution.",
                         "Guard commits, pushes, deployments, deletions, messages, payments, and other externally observable or non-repeatable effects separately; replay-safe source mutation does not automatically make later effects replay-safe.",
-                        "LRPs and manual snippet passes may include equivalent applicability or replay guards when useful. For automated ZMPs, make such protection the default whenever accidental replay could duplicate, corrupt, or wrongly advance mutation state.",
+                        "LRPs and manual snippet passes may include equivalent applicability or replay guards when useful. For automated ZMPs and BMPs, make such protection the default whenever accidental replay could duplicate, corrupt, or wrongly advance mutation state.",
                     ]
                 )
             }
