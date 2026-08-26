@@ -12,10 +12,50 @@ public enum SourceConventionGuideline:
     public var content: GuidelineContent {
         switch self {
         case .no_emoji:
-            CasingGuideline.no_emoji.content
+            .init(
+                title: "Do not use emoji characters",
+                summary: #"""
+                Do not introduce emoji characters into source.
+                """#
+            ) {
+                paragraph(
+                    #"""
+                    Keep source text and generated code readable and searchable without depending on pictographic glyphs whose appearance, width, and interpretation can vary across terminals, fonts, and tooling.
+                    """#
+                )
+
+                list(
+                    style: .unordered,
+                    items: [
+                        "Use textual labels, ordinary symbols, and explicit words instead of emoji characters in source and generated code.",
+                        "Do not use emoji as semantic markers in diagnostics, workflow output, identifiers, comments, fixtures, or generated examples when a textual representation communicates the same meaning.",
+                    ]
+                )
+            }
 
         case .indentation:
-            CasingGuideline.indentation.content
+            .init(
+                title: "Preserve consistent indentation",
+                summary: #"""
+                Use four spaces for indentation and preserve the
+                relative indentation of existing source.
+                """#
+            ) {
+                paragraph(
+                    #"""
+                    Indentation should reveal the structural depth of the source without introducing incidental reformatting around an otherwise focused change.
+                    """#
+                )
+
+                list(
+                    style: .unordered,
+                    items: [
+                        "Use four spaces for each indentation level.",
+                        "Preserve the relative indentation of existing source unless the change intentionally reformats the surrounding construction.",
+                        "When moving or inserting code, align it to the structural level it actually belongs to rather than to the transport or patch representation used to edit it.",
+                    ]
+                )
+            }
 
         case .vertical_layout:
             .init(

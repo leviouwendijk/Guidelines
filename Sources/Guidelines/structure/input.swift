@@ -1,9 +1,4 @@
-public enum InputGuideline:
-    String,
-    Sendable,
-    Hashable,
-    CaseIterable
-{
+public enum InputGuideline: String, Sendable, Hashable, CaseIterable {
     case domain_intent
     case no_forced_input_struct
     case input_type_earned
@@ -23,65 +18,40 @@ public enum InputGuideline:
             ) {
                 paragraph(
                     #"""
-                    Input expresses what the caller wants in domain terms.
+                    Input expresses what the caller wants in domain terms. The operation should not depend on the accidental syntax or state representation of the interface that supplied that request.
                     """#
                 )
+
+                example("Adapt interface syntax before the domain operation") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        CLI arguments ─────┐
+                        Agentic JSON ──────┤
+                        GUI state ─────────┼──→ domain input
+                        HTTP payload ──────┤
+                        Swift caller ──────┘
+                        """#
+                    )
+
+                    code(
+                        language: "text",
+                        content: #"""
+                        // Avoid as the real operation input.
+                        ["--recursive", "--force", "./foo"]
+
+                        // Prefer domain meaning.
+                        ConcatenationRequest
+                        SyncRequest
+                        BuildRequest
+                        CompilationRequest
+                        """#
+                    )
+                }
 
                 paragraph(
                     #"""
-                    It should not encode the accidental syntax of the interface that supplied the request.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Avoid making the real operation consume:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    ["--recursive", "--force", "./foo"]
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    when the actual domain request can be represented as:
-                    """#
-                )
-
-                code(
-                    language: "swift",
-                    content: #"""
-                    ConcatenationRequest
-                    SyncRequest
-                    BuildRequest
-                    CompilationRequest
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The interface performs the adaptation:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    CLI arguments ─────┐
-                    Agentic JSON ──────┤
-                    GUI state ─────────┼──> domain input
-                    HTTP payload ──────┤
-                    Swift caller ──────┘
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    This is one of the primary portability boundaries.
+                    This adaptation boundary keeps domain operations portable across interfaces without requiring each operation to understand every external request vehicle.
                     """#
                 )
             }
@@ -96,64 +66,29 @@ public enum InputGuideline:
             ) {
                 paragraph(
                     #"""
-                    Do not manufacture an input wrapper merely to conform to the architecture.
+                    An operation having input does not imply that its input needs a dedicated carrier type.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    This is already a good input surface:
-                    """#
-                )
+                example("Keep small input surfaces direct") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        fingerprint(of: data)
 
-                code(
-                    language: "swift",
-                    content: #"""
-                    fingerprint(of: data)
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Likewise:
-                    """#
-                )
-
-                code(
-                    language: "swift",
-                    content: #"""
-                    Compare.Number.Decimal.exceeds(
-                        difference,
-                        tolerance: tolerance
+                        Compare.Number.Decimal.exceeds(
+                            difference,
+                            tolerance: tolerance
+                        )
+                        """#
                     )
-                    """#
-                )
 
-                paragraph(
-                    #"""
-                    already expresses a small operation clearly.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Wrapping those values in:
-                    """#
-                )
-
-                code(
-                    language: "swift",
-                    content: #"""
-                    FingerprintInput
-                    DecimalComparisonInput
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    would only be useful if the grouped value itself acquired meaning beyond the immediate function call.
-                    """#
-                )
+                    paragraph(
+                        #"""
+                        These calls already express small operations clearly. `FingerprintInput` or `DecimalComparisonInput` would add representation only if the grouped value acquired meaning beyond the immediate call.
+                        """#
+                    )
+                }
             }
 
         case .input_type_earned:
@@ -167,33 +102,27 @@ public enum InputGuideline:
             ) {
                 paragraph(
                     #"""
-                    A dedicated input type becomes more useful when the requested intent:
+                    A dedicated input type becomes useful when the request itself has become a meaningful cohesive value rather than merely a list of function arguments.
                     """#
                 )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    contains several related values
-                    is passed through multiple stages
-                    is stored or transported
-                    needs invariants
-                    is reused by several callers
-                    is inspected before execution
-                    has meaningful defaults or policy
-                    benefits substantially from a named cohesive representation
-                    """#
+                list(
+                    style: .unordered,
+                    items: [
+                        "It contains several related values whose grouping is meaningful.",
+                        "It passes through multiple stages or boundaries.",
+                        "It is stored or transported.",
+                        "It carries invariants.",
+                        "Several callers reuse the same request shape.",
+                        "It is inspected before execution.",
+                        "It has meaningful defaults or policy.",
+                        "Naming the grouped value substantially improves cohesion or readability.",
+                    ]
                 )
 
-                paragraph(
+                quote(
                     #"""
-                    The number of parameters alone is not the rule.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The question is whether the request has become a meaningful value of its own.
+                    Parameter count is a signal, not the rule; the question is whether the requested intent has become a value of its own.
                     """#
                 )
             }
@@ -208,19 +137,13 @@ public enum InputGuideline:
             ) {
                 paragraph(
                     #"""
-                    A small helper may deserve centralization because the same semantic operation occurs throughout several libraries.
+                    A small helper may deserve centralization because the same semantic operation appears throughout several libraries. That reusable abstraction does not imply that its arguments must also become a carrier type.
                     """#
                 )
 
-                paragraph(
+                quote(
                     #"""
-                    That does not mean its arguments must become a carrier type.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Prefer centralizing repeated meaning while keeping the public representation proportional to the operation.
+                    Centralize repeated meaning while keeping the public representation proportional to the operation.
                     """#
                 )
             }
@@ -235,42 +158,24 @@ public enum InputGuideline:
             ) {
                 paragraph(
                     #"""
-                    External representations may begin loose.
+                    External request vehicles often begin with loose representations that should not be carried unchanged through the semantic core.
                     """#
+                )
+
+                list(
+                    style: .unordered,
+                    items: [
+                        "JSON fields",
+                        "CLI strings",
+                        "environment variables",
+                        "database rows",
+                        "HTTP fields",
+                    ]
                 )
 
                 paragraph(
                     #"""
-                    For example:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    JSON
-                    CLI strings
-                    environment variables
-                    database rows
-                    HTTP fields
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    When those values have structural or semantic requirements, parse them into stronger domain types before carrying them deeper into the operation.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    See ParseDontValidateGuideline.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The inner operation should receive domain meaning wherever practical, rather than repeatedly reinterpreting raw interface values.
+                    When those values have structural or semantic requirements, parse them into stronger domain values before carrying them deeper into the operation. The Parse, don't validate chapter governs how successful interpretation should become structural and when validation remains the actual requested operation.
                     """#
                 )
             }

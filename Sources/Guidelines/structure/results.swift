@@ -1,9 +1,4 @@
-public enum ResultGuideline:
-    String,
-    Sendable,
-    Hashable,
-    CaseIterable
-{
+public enum ResultGuideline: String, Sendable, Hashable, CaseIterable {
     case authoritative_semantic_outcome
     case authoritative_final_state
     case delay_lowering
@@ -23,88 +18,52 @@ public enum ResultGuideline:
             ) {
                 paragraph(
                     #"""
-                    A result describes the authoritative semantic outcome of an operation.
+                    A result describes the authoritative semantic outcome of an operation. It should preserve the meaningful state produced by the operation rather than merely report how one consumer happened to present that state.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    It should answer:
-                    """#
-                )
+                example("Ask what another consumer would need") {
+                    quote(
+                        #"""
+                        What durable or meaningful state came out of this operation?
+                        """#
+                    )
 
-                quote(
-                    #"""
-                    What durable or meaningful state came out of this operation?
-                    """#
-                )
+                    paragraph(
+                        #"""
+                        That is a stronger design question than asking what the current CLI printed, which log lines appeared, or whether a presenter displayed a success indicator.
+                        """#
+                    )
+                }
 
-                paragraph(
-                    #"""
-                    It should not primarily answer:
-                    """#
-                )
+                example("Return domain information, not presentation state") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        BuildResult
+                            product
+                            artifact
+                            configuration
+                            duration
+                            compilation status
+                            generated metadata
 
-                quote(
-                    #"""
-                    What did I print?
-                    """#
-                )
+                        SyncResult
+                            created
+                            updated
+                            deleted
+                            skipped
+                            bytes transferred
+                            post-actions
 
-                paragraph(
-                    #"""
-                    And it does not need to collapse every meaningful outcome into a boolean success flag.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Examples:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    BuildResult
-                        product
-                        artifact
-                        configuration
-                        duration
-                        compilation status
-                        generated metadata
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    SyncResult
-                        created
-                        updated
-                        deleted
-                        skipped
-                        bytes transferred
-                        post-actions
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    CompilationResult
-                        model
-                        diagnostics
-                        generated entries
-                        output
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    A useful test is:
-                    """#
-                )
+                        CompilationResult
+                            model
+                            diagnostics
+                            generated entries
+                            output
+                        """#
+                    )
+                }
 
                 quote(
                     #"""
@@ -114,7 +73,7 @@ public enum ResultGuideline:
 
                 paragraph(
                     #"""
-                    If yes, the result is probably carrying domain information rather than presentation state.
+                    A result that survives that test is likely carrying semantic information rather than presentation state. It also need not collapse every meaningful outcome into a boolean success flag.
                     """#
                 )
             }
@@ -129,19 +88,23 @@ public enum ResultGuideline:
             ) {
                 paragraph(
                     #"""
-                    Callers should not have to reconstruct meaningful final state by inspecting progress events, terminal output, logs, or presenter state.
+                    Meaningful final state belongs in the operation result. Events, logs, terminal output, and presenter state may describe or project what happened, but they should not become the only place from which callers can reconstruct the authoritative outcome.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    Those are observations or projections.
-                    """#
+                list(
+                    style: .unordered,
+                    items: [
+                        "Events describe observations during execution.",
+                        "Logs provide diagnostic or operational records.",
+                        "Terminal and GUI output present information for a particular interface.",
+                        "The result carries the semantically meaningful final information that later code may depend on.",
+                    ]
                 )
 
-                paragraph(
+                quote(
                     #"""
-                    The result is where semantically meaningful final information belongs.
+                    Callers should consume final meaning from the result, not reverse-engineer it from observations.
                     """#
                 )
             }
@@ -157,90 +120,46 @@ public enum ResultGuideline:
             ) {
                 paragraph(
                     #"""
-                    Prefer preserving the richest reasonably reusable semantic representation until a boundary actually requires a narrower one.
+                    Preserve the richest reasonably reusable semantic representation until a real boundary requires something narrower. Early irreversible projection makes the first consumer convenient by making later consumers reconstruct information that the operation already knew.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    Avoid prematurely turning:
-                    """#
+                list(
+                    style: .unordered,
+                    items: [
+                        "terminal strings",
+                        "JSON payloads",
+                        "HTML",
+                        "GUI rows or view state",
+                        "Agentic messages or envelopes",
+                    ]
                 )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    DomainResult
-                    """#
-                )
+                example("Preserve a reusable projection before terminal lowering") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        // Prefer when several consumers need shared layout meaning.
+                        TextDifference
+                            ↓
+                        DifferenceLayout
+                            ├── basic renderer
+                            ├── terminal renderer
+                            └── other consumers
 
-                paragraph(
-                    #"""
-                    into:
-                    """#
-                )
+                        // Avoid irreversible narrowing when richer meaning is reusable.
+                        TextDifference
+                            ↓
+                        terminal String
+                        """#
+                    )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    terminal String
-                    JSON
-                    HTML
-                    GUI row
-                    Agentic message
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    when later consumers may reasonably need the underlying semantic information.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Early irreversible projection often causes a later refactor when another consumer appears.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    For example:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    TextDifference
-                        ↓
-                    DifferenceLayout
-                        ├── basic renderer
-                        ├── terminal renderer
-                        └── other consumers
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    may be preferable to:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    TextDifference
-                        ↓
-                    terminal String
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    when DifferenceLayout preserves information shared by several output paths.
-                    """#
-                )
+                    paragraph(
+                        #"""
+                        `DifferenceLayout` earns its place when it preserves information shared by several legitimate output paths. If no such reusable meaning exists, an intermediate projection should not be manufactured merely to delay rendering.
+                        """#
+                    )
+                }
             }
 
         case .intermediate_result_earned:
@@ -254,30 +173,24 @@ public enum ResultGuideline:
             ) {
                 paragraph(
                     #"""
-                    Do not introduce an intermediate model merely because another stage can be drawn on an architecture diagram.
+                    An intermediate model is useful when it contributes independent semantic or architectural value. Do not create one merely because another box can be drawn between computation and presentation.
                     """#
+                )
+
+                list(
+                    style: .unordered,
+                    items: [
+                        "Preserve information needed by several consumers.",
+                        "Add reusable semantic enrichment that is meaningful independently of one presenter.",
+                        "Support useful independent inspection or testing.",
+                        "Create a stable boundary between domain computation and output adaptation.",
+                        "Materially improve readability or cohesion by naming a real intermediate concept.",
+                    ]
                 )
 
                 paragraph(
                     #"""
-                    An intermediate representation is especially useful when it:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    preserves information needed by several consumers
-                    adds reusable semantic enrichment
-                    can be inspected independently
-                    provides a stable boundary between domain computation and output
-                    substantially improves readability or cohesion
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    If an intermediate value has only one trivial consumer and no independent meaning, keeping it private or collapsing it may be cleaner.
+                    If an intermediate value has one trivial consumer and no independent meaning, keeping it private or collapsing it is usually the cleaner design.
                     """#
                 )
             }
@@ -293,59 +206,41 @@ public enum ResultGuideline:
             ) {
                 paragraph(
                     #"""
-                    A tiny operation may legitimately return:
+                    A dedicated result type should represent useful result structure. When an existing primitive or domain type already expresses the complete outcome, wrapping it only to make the return value look architectural adds representation without adding meaning.
                     """#
                 )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    Bool
-                    Int
-                    String
-                    Decimal
-                    URL
-                    """#
+                list(
+                    style: .unordered,
+                    items: [
+                        "Bool",
+                        "Int",
+                        "String",
+                        "Decimal",
+                        "URL",
+                        "an existing domain type that already represents the complete outcome",
+                    ]
                 )
 
-                paragraph(
-                    #"""
-                    when that value already is the complete semantic result.
-                    """#
-                )
+                example("Do not rename a primitive without adding structure") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        // Sufficient when the complete semantic question is boolean.
+                        Compare.Number.Decimal.exceeds(...)
+                            -> Bool
 
-                paragraph(
-                    #"""
-                    For example:
-                    """#
-                )
-
-                code(
-                    language: "swift",
-                    content: #"""
-                    Compare.Number.Decimal.exceeds(...)
-                        -> Bool
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    does not become more meaningful merely by returning:
-                    """#
-                )
-
-                code(
-                    language: "swift",
-                    content: #"""
-                    DecimalComparisonResult(
-                        exceedsTolerance: true
+                        // Avoid when the wrapper adds no additional meaning.
+                        DecimalComparisonResult(
+                            exceedsTolerance: true
+                        )
+                        """#
                     )
-                    """#
-                )
+                }
 
                 paragraph(
                     #"""
-                    A result type should represent useful result structure, not merely rename a primitive.
+                    Introduce a result struct when there is actual result structure to preserve: several meaningful fields, invariants, behavior, identity, reusable projections, or other semantics that cannot be expressed adequately by the existing value.
                     """#
                 )
             }
@@ -361,30 +256,24 @@ public enum ResultGuideline:
             ) {
                 paragraph(
                     #"""
-                    Outcomes such as:
+                    An operation can complete meaningfully without producing a mutation or conventional success payload. When the absence of change is part of the domain's expected state space, model it as an outcome rather than forcing it into an exceptional failure path.
                     """#
                 )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    no changes
-                    already up to date
-                    0 matches
-                    cache miss
-                    conflict detected
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    may be legitimate typed domain outcomes rather than exceptional failures.
-                    """#
+                list(
+                    style: .unordered,
+                    items: [
+                        "no changes",
+                        "already up to date",
+                        "zero matches",
+                        "cache miss",
+                        "conflict detected",
+                    ]
                 )
 
                 paragraph(
                     #"""
-                    See FailureAndOutcomeGuideline.
+                    Whether a particular state is a normal result, a distinguished no-op, or a failure is a domain decision. The Failure and Outcome chapter governs that distinction more broadly.
                     """#
                 )
             }

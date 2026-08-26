@@ -1,9 +1,4 @@
-public enum PlanningGuideline:
-    String,
-    Sendable,
-    Hashable,
-    CaseIterable
-{
+public enum PlanningGuideline: String, Sendable, Hashable, CaseIterable {
     case plan_when_valuable
     case inspect_what_executes
     case preserve_plan_preconditions
@@ -22,102 +17,88 @@ public enum PlanningGuideline:
             ) {
                 paragraph(
                     #"""
-                    A plan is an executable description of intended work.
+                    A plan is an executable description of intended work. Introduce one when representing the concrete work independently before execution creates useful inspection, control, reuse, or determinism. Planning is not a mandatory stage for every operation.
                     """#
                 )
+
+                example("Keep simple operations direct") {
+                    paragraph(
+                        #"""
+                        Operations such as these often need no independently modeled plan:
+                        """#
+                    )
+
+                    list(
+                        style: .unordered,
+                        items: [
+                            "read a file",
+                            "calculate a hash",
+                            "parse a value",
+                            "render a string",
+                        ]
+                    )
+
+                    paragraph(
+                        #"""
+                        A direct input-to-result path may already express the complete operation cleanly.
+                        """#
+                    )
+                }
 
                 paragraph(
                     #"""
-                    Not every operation needs one.
+                    Planning becomes more valuable as concrete work becomes expensive to rediscover or important to inspect before effects begin.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    For operations such as:
-                    """#
+                list(
+                    style: .unordered,
+                    items: [
+                        "multi-step",
+                        "expensive",
+                        "mutating",
+                        "reviewable",
+                        "resumable",
+                        "cacheable",
+                        "approvable",
+                        "worth previewing or testing independently",
+                    ]
                 )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    read a file
-                    calculate a hash
-                    parse a value
-                    render a string
-                    """#
-                )
+                example("Represent a concrete sync before running it") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        Input
+                            "sync these projects"
 
-                paragraph(
-                    #"""
-                    a direct input-to-result path may already be correct.
-                    """#
-                )
+                                ↓
 
-                paragraph(
-                    #"""
-                    Planning becomes valuable when work is:
-                    """#
-                )
+                        Plan
+                            resolved source
+                            resolved destination
+                            files to create
+                            files to update
+                            files to remove
+                            commands to run
+                            expected bytes
+                        """#
+                    )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    multi-step
-                    expensive
-                    mutating
-                    reviewable
-                    resumable
-                    cacheable
-                    approvable
-                    worth previewing
-                    """#
-                )
+                    code(
+                        language: "swift",
+                        content: #"""
+                        let plan = try synchronizer.plan(input)
+                        let result = try await synchronizer.run(plan)
+                        """#
+                    )
 
-                paragraph(
-                    #"""
-                    For example:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    Input
-                        "sync these projects"
-                    
-                            ↓
-                    
-                    Plan
-                        resolved source
-                        resolved destination
-                        files to create
-                        files to update
-                        files to remove
-                        commands to run
-                        expected bytes
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Then prefer a shape such as:
-                    """#
-                )
-
-                code(
-                    language: "swift",
-                    content: #"""
-                    let plan = try synchronizer.plan(input)
-                    let result = try await synchronizer.run(plan)
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    over inspecting one interpretation and later having run(input) independently rediscover what should happen.
-                    """#
-                )
+                    paragraph(
+                        #"""
+                        This shape lets inspection, testing, approval, and execution refer to the same concrete work rather than inspecting one interpretation and having `run(input)` independently rediscover another.
+                        """#
+                    )
+                }
             }
 
         case .inspect_what_executes:
@@ -129,12 +110,6 @@ public enum PlanningGuideline:
                 execution time.
                 """#
             ) {
-                paragraph(
-                    #"""
-                    A central invariant is:
-                    """#
-                )
-
                 quote(
                     #"""
                     The thing inspected should, wherever reasonable, be the thing executed.
@@ -143,13 +118,34 @@ public enum PlanningGuideline:
 
                 paragraph(
                     #"""
-                    This is useful for human confirmation, Agentic approval, dry runs, testing, resumability, and deterministic execution.
+                    Inspection is meaningful only while it remains connected to execution. Human confirmation, Agentic approval, dry runs, tests, resumability, and deterministic execution all become weaker when execution silently performs a second independent planning pass.
                     """#
                 )
 
+                example("Preserve one concrete work identity") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        requested intent
+                            ↓
+                        concrete plan
+                            ├── inspect
+                            ├── test
+                            ├── approve
+                            └── execute
+                        """#
+                    )
+
+                    paragraph(
+                        #"""
+                        The different consumers may observe different projections of the plan, but execution should still be grounded in the same concrete work identity.
+                        """#
+                    )
+                }
+
                 paragraph(
                     #"""
-                    It should not silently turn execution into a second independent planning pass.
+                    If the domain genuinely requires replanning against fresh state, make that transition explicit. A materially different plan should be treated as new work and re-inspected or re-approved when those guarantees matter.
                     """#
                 )
             }
@@ -164,27 +160,21 @@ public enum PlanningGuideline:
             ) {
                 paragraph(
                     #"""
-                    A plan prepared from mutable state should preserve enough information to determine whether the work it describes is still the work that was inspected.
+                    A plan prepared from mutable state should preserve enough information to determine whether the work it describes is still the work that was inspected. The goal is not to snapshot the entire environment; it is to retain the assumptions whose change would materially alter execution.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    Domain-appropriate preconditions may include:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    content fingerprints
-                    versions or revisions
-                    resource identifiers
-                    expected before-state
-                    base commits
-                    ETags or equivalent remote versions
-                    resolved source/destination identities
-                    """#
+                list(
+                    style: .unordered,
+                    items: [
+                        "content fingerprints",
+                        "versions or revisions",
+                        "resource identifiers",
+                        "expected before-state",
+                        "base commits",
+                        "ETags or equivalent remote versions",
+                        "resolved source and destination identities",
+                    ]
                 )
 
                 quote(
@@ -195,7 +185,7 @@ public enum PlanningGuideline:
 
                 paragraph(
                     #"""
-                    The exact guard is domain-relative. Preserve only the preconditions needed to detect drift that would materially change the meaning or safety of execution.
+                    Choose guards according to the domain. Preserve only the preconditions needed to detect drift that would materially change the meaning, applicability, or safety of execution.
                     """#
                 )
             }
@@ -210,32 +200,40 @@ public enum PlanningGuideline:
             ) {
                 paragraph(
                     #"""
-                    A plan describes domain work.
+                    A plan describes domain work. It may expose enough semantic information for many consumers to inspect that work, but it should not encode the presentation or interaction vocabulary of whichever consumer happens to inspect it first.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    It should not need to know:
-                    """#
+                list(
+                    style: .unordered,
+                    items: [
+                        "terminal color",
+                        "JSON formatting",
+                        "GUI layout",
+                        "Agentic approval wording",
+                        "HTTP response shape",
+                    ]
                 )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    terminal color
-                    JSON formatting
-                    GUI layout
-                    Agentic approval wording
-                    HTTP response shape
-                    """#
-                )
+                example("Project the same plan into different consumers") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        Domain Plan
+                            ├── terminal preview
+                            ├── Agentic approval projection
+                            ├── GUI review
+                            ├── test inspection
+                            └── execution
+                        """#
+                    )
 
-                paragraph(
-                    #"""
-                    Those concerns belong outside the plan.
-                    """#
-                )
+                    paragraph(
+                        #"""
+                        Those consumers may render or summarize the plan differently without changing the domain-native work the plan represents.
+                        """#
+                    )
+                }
             }
         }
     }

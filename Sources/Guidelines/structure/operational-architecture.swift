@@ -1,9 +1,4 @@
-public enum OperationalArchitectureGuideline:
-    String,
-    Sendable,
-    Hashable,
-    CaseIterable
-{
+public enum OperationalArchitectureGuideline: String, Sendable, Hashable, CaseIterable {
     case meaningful_boundaries
     case abstraction_and_layering_separate
     case preserve_meaningful_information
@@ -17,62 +12,47 @@ public enum OperationalArchitectureGuideline:
                 title: "Use meaningful boundaries, not mandatory layers",
                 summary: #"""
                 Separate intent, preparation, execution, observation, outcome, and
-                presentation where those distinctions are independently meaningful; do not
-                treat conceptual roles as mandatory layers.
+                presentation where those distinctions are independently meaningful;
+                do not treat conceptual roles as mandatory layers.
                 """#
             ) {
                 paragraph(
                     #"""
-                    The general structural discipline is:
+                    Operational roles are useful because they help us reason about where meaning changes. They are not a requirement that every operation be decomposed into the same fixed stack of types or stages.
                     """#
                 )
 
                 quote(
                     #"""
-                    Design operations so intent, preparation, execution, observation, outcome, and presentation are separable at meaningful boundaries. Collapse the layers when the operation is simple; preserve them when separating them increases determinism, inspectability, reuse, readability, or adaptability.
+                    Design operations so intent, preparation, execution, observation, outcome, and presentation are separable at meaningful boundaries. Collapse them when the operation is simple; preserve them when separation improves determinism, inspectability, reuse, readability, or adaptability.
                     """#
                 )
+
+                example("Keep domain operations usable from different consumers") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        domain operation
+                            ├── CLI
+                            ├── GUI
+                            ├── server
+                            ├── scheduled process
+                            ├── Agentic tool
+                            ├── test flow
+                            └── another Swift library
+                        """#
+                    )
+
+                    paragraph(
+                        #"""
+                        These consumers may compose, observe, or present the same operation differently without forcing the domain implementation itself to depend on each consumer.
+                        """#
+                    )
+                }
 
                 paragraph(
                     #"""
-                    This is a general operational architecture rather than an Agentic-specific architecture.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The same domain operation should be usable from:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    CLI
-                    GUI
-                    server
-                    scheduled process
-                    Agentic tool
-                    test flow
-                    another Swift library
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    without its actual domain implementation unnecessarily depending on those consumers.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The architecture applies to meaningful operational boundaries.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The Operational Model chapter describes how these roles collapse for smaller operations and when a role earns a dedicated type. This chapter is concerned with where meaningful boundaries and dependency direction belong.
+                    The Operational Model chapter governs when conceptual roles deserve dedicated representations and when they should collapse. Operational Architecture instead governs where independently meaningful boundaries and dependency directions belong.
                     """#
                 )
             }
@@ -87,55 +67,38 @@ public enum OperationalArchitectureGuideline:
             ) {
                 paragraph(
                     #"""
-                    Repeated semantics can justify abstraction without justifying additional operational layers.
+                    Repeated semantics may deserve one reusable abstraction even when the operation remains structurally tiny. Conversely, a meaningful operational boundary may deserve separation even when there is little repeated implementation.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    For example, a repeated decimal tolerance comparison may deserve one canonical reusable function because the same meaning otherwise gets implemented repeatedly.
-                    """#
-                )
+                example("Centralize meaning without manufacturing layers") {
+                    paragraph(
+                        #"""
+                        A decimal tolerance comparison may deserve one canonical reusable function because otherwise the same comparison semantics are implemented repeatedly. That does not imply that every comparison needs dedicated input, planning, execution, and result carrier types.
+                        """#
+                    )
 
-                paragraph(
-                    #"""
-                    That does not mean the comparison also needs dedicated input and result carrier types.
-                    """#
-                )
+                    code(
+                        language: "text",
+                        content: #"""
+                        abstraction
+                            centralizes reusable meaning
 
-                paragraph(
-                    #"""
-                    A useful distinction is:
-                    """#
-                )
+                        layering
+                            separates independently meaningful stages
+                            or representations
+                        """#
+                    )
+                }
 
-                code(
-                    language: "text",
-                    content: #"""
-                    abstraction
-                        centralizes a reusable meaning
-                    
-                    layering
-                        separates independently meaningful stages or representations
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Both can be useful.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Neither automatically implies the other.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Prefer centralizing repeated meaning without adding representational ceremony that has no independent value.
-                    """#
+                list(
+                    style: .unordered,
+                    items: [
+                        "Introduce an abstraction when repeated or independently useful meaning deserves one canonical expression.",
+                        "Introduce a layer or carrier when a stage, representation, invariant, ownership boundary, or lifecycle distinction has independent value.",
+                        "Do not infer the need for additional operational types merely from the existence of a reusable abstraction.",
+                        "Do not avoid a meaningful operational boundary merely because its implementation is currently small.",
+                    ]
                 )
             }
 
@@ -147,12 +110,6 @@ public enum OperationalArchitectureGuideline:
                 representations that add no independent semantic value.
                 """#
             ) {
-                paragraph(
-                    #"""
-                    A useful cross-cutting rule is:
-                    """#
-                )
-
                 quote(
                     #"""
                     Preserve meaningful information and meaningful boundaries; avoid representations that add no independent meaning.
@@ -161,47 +118,38 @@ public enum OperationalArchitectureGuideline:
 
                 paragraph(
                     #"""
-                    This means we should be cautious in both directions.
+                    This rule protects against both architectural over-modeling and premature collapse. A representation should not exist merely to satisfy a diagram, but useful semantic information should not be discarded simply because one current consumer needs a narrower form.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    Do not introduce types merely to satisfy an architectural diagram.
-                    """#
-                )
+                example("Preserve a reusable projection before rendering") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        Difference
+                            ↓
+                        DifferenceLayout
+                            ├── basic renderer
+                            ├── terminal renderer
+                            └── other consumers
+                        """#
+                    )
 
-                paragraph(
-                    #"""
-                    But also do not collapse a useful semantic result into a narrower representation too early.
-                    """#
-                )
+                    paragraph(
+                        #"""
+                        A reusable `DifferenceLayout` may preserve information and optionality that would be lost by immediately producing a terminal string.
+                        """#
+                    )
+                }
 
-                paragraph(
-                    #"""
-                    For example:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    Difference
-                        -> reusable DifferenceLayout
-                        -> renderer-specific output
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    may preserve useful optionality that would be lost by immediately producing a terminal string.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Likewise, normalization that discards information should be intentional and justified by the domain rather than applied mechanically.
-                    """#
+                list(
+                    style: .unordered,
+                    items: [
+                        "Do not introduce types or stages that add no independently useful meaning.",
+                        "Do not irreversibly lower a rich semantic value merely because the first consumer needs a narrow representation.",
+                        "Treat normalization that discards information as an intentional domain decision rather than a mechanical cleanup step.",
+                        "Preserve optionality when several legitimate consumers may need different projections of the same semantic result.",
+                    ]
                 )
             }
 
@@ -216,81 +164,44 @@ public enum OperationalArchitectureGuideline:
             ) {
                 paragraph(
                     #"""
-                    Domain code should generally remain usable without the interface that happens to expose it.
+                    Domain code should generally remain usable without the interface that happens to expose it. Consumer-specific representation and behavior should therefore point inward toward domain meaning rather than forcing that consumer into the semantic core.
+                    """#
+                )
+
+                example("Adapt domain results outward") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        Concatenation.Result
+                            ↓
+                        Agentic adapter
+                            ↓
+                        AgentToolResult
+
+                        BuildResult
+                            ↓
+                        Terminal presenter
+                            ↓
+                        ANSI output
+
+                        Accounting.Report
+                            ↓
+                        PDF adapter
+                            ↓
+                        PDF DSL
+                        """#
+                    )
+                }
+
+                paragraph(
+                    #"""
+                    This is a strong default rather than an absolute prohibition against every outward-facing dependency. A lightweight integration protocol may reasonably be adopted directly when it faithfully exposes existing domain meaning and an adapter would add representation without meaningful isolation.
                     """#
                 )
 
                 paragraph(
                     #"""
-                    Prefer:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    domain
-                        ↓
-                    adapter
-                        ↓
-                    interface
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    over embedding substantial interface-specific behavior in the domain.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Examples:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    Concatenation.Result
-                        -> Agentic adapter
-                        -> AgentToolResult
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    BuildResult
-                        -> Terminal presenter
-                        -> ANSI output
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    Accounting.Report
-                        -> PDF adapter
-                        -> PDF DSL
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    This is a dependency-direction preference, not an absolute prohibition against every lightweight outward-facing protocol conformance.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Some intentionally lightweight integration protocols may reasonably be adopted directly by a domain type when the conformance faithfully exposes the same existing domain value and avoids otherwise redundant mirror types or retroactive-conformance boilerplate.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    See BoundaryAdaptationGuideline.
+                    The Boundary Adaptation chapter governs that exception in more detail, including dependency cost, native conformances, retroactive-conformance cost, and the point at which adaptation becomes substantial enough to belong outward.
                     """#
                 )
             }
@@ -306,58 +217,41 @@ public enum OperationalArchitectureGuideline:
             ) {
                 paragraph(
                     #"""
-                    Separation does not mean separated concerns can never appear together.
+                    Separation does not mean independently defined concerns can never appear together. Composition roots are precisely where the system may intentionally join them.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    An outer orchestration or composition boundary may intentionally coordinate:
-                    """#
+                list(
+                    style: .unordered,
+                    items: [
+                        "execution",
+                        "events and observation",
+                        "logging",
+                        "presentation",
+                        "process lifecycle",
+                        "interface behavior",
+                    ]
                 )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    execution
-                    events
-                    logging
-                    presentation
-                    process lifecycle
-                    interface behavior
-                    """#
-                )
+                example("Compose observation with presentation outside the operation") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        domain operation emits Event
+                            ↓
+                        CLI composition observes Event
+                            ↓
+                        spinner / terminal presentation
+                        """#
+                    )
 
-                paragraph(
-                    #"""
-                    For example:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    domain operation emits Event
-                        ↓
-                    CLI command observes Event
-                        ↓
-                    spinner / terminal presentation
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The important boundary is that the domain operation does not need the spinner in order to exist.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Composition is where independently defined concerns are allowed to meet.
-                    """#
-                )
+                    paragraph(
+                        #"""
+                        The important boundary is that the domain operation does not require the spinner in order to exist. The composition root joins those independently defined concerns for this particular application.
+                        """#
+                    )
+                }
             }
-
         }
     }
 }

@@ -1,9 +1,4 @@
-public enum BoundaryAdaptationGuideline:
-    String,
-    Sendable,
-    Hashable,
-    CaseIterable
-{
+public enum BoundaryAdaptationGuideline: String, Sendable, Hashable, CaseIterable {
     case adapt_at_boundaries
     case dependency_direction_default
     case lightweight_native_conformance
@@ -25,13 +20,7 @@ public enum BoundaryAdaptationGuideline:
             ) {
                 paragraph(
                     #"""
-                    Adaptation should generally happen at meaningful boundaries.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    A strong default is:
+                    Adaptation belongs where one meaningful domain or representation meets another. Keep the semantic core expressed in its own vocabulary and project it outward when a particular consumer requires different representation or behavior.
                     """#
                 )
 
@@ -41,95 +30,48 @@ public enum BoundaryAdaptationGuideline:
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    Avoid:
-                    """#
-                )
+                example("Project consumer-specific forms outward") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        // Avoid.
+                        Concatenation.Result contains AgentToolResult
 
-                code(
-                    language: "text",
-                    content: #"""
-                    Concatenation.Result contains AgentToolResult
-                    """#
-                )
+                        // Prefer.
+                        Concatenation.Result
+                            ↓
+                        AgenticDomains adapter
+                            ↓
+                        AgentToolResult
 
-                paragraph(
-                    #"""
-                    Prefer:
-                    """#
-                )
+                        // Avoid.
+                        Executable.BuildResult contains ANSI strings
 
-                code(
-                    language: "text",
-                    content: #"""
-                    Concatenation.Result
-                        -> AgenticDomains adapter
-                        -> AgentToolResult
-                    """#
-                )
+                        // Prefer.
+                        BuildResult
+                            ↓
+                        Terminal presenter
+                            ↓
+                        ANSI output
 
-                paragraph(
-                    #"""
-                    Avoid:
-                    """#
-                )
+                        // Avoid.
+                        Accounting parser produces PDF DSL nodes
 
-                code(
-                    language: "text",
-                    content: #"""
-                    Executable.BuildResult contains ANSI strings
-                    """#
-                )
+                        // Prefer.
+                        Accounting.Report
+                            ↓
+                        Report/PDF adapter
+                            ↓
+                        PDF DSL
+                        """#
+                    )
 
-                paragraph(
-                    #"""
-                    Prefer:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    BuildResult
-                        -> Terminal presenter
-                        -> ANSI output
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Avoid:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    Accounting parser produces PDF DSL nodes
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Prefer:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    Accounting.Report
-                        -> Report/PDF adapter
-                        -> PDF DSL
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    This preserves composition because the inner domain can exist without substantial knowledge of the outer consumer.
-                    """#
-                )
+                    paragraph(
+                        #"""
+                        In each preferred form, the inner value can exist independently of the current outer consumer. The adapter owns the translation between the two meanings.
+                        """#
+                    )
+                }
             }
 
         case .dependency_direction_default:
@@ -143,42 +85,33 @@ public enum BoundaryAdaptationGuideline:
             ) {
                 paragraph(
                     #"""
-                    Where practical:
+                    Prefer dependency direction that lets the domain remain useful without substantial knowledge of its consumers. Apply that preference according to the actual coupling created rather than as a mechanical ban on every outward-facing protocol.
                     """#
                 )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    domain
-                        <- adapter depends on domain
-                        <- interface depends on adapter/domain
-                    """#
-                )
+                example("Prefer outward adaptation for substantial dependencies") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        domain
+                            ← adapter depends on domain
+                            ← interface depends on adapter/domain
 
-                paragraph(
-                    #"""
-                    is preferable to:
-                    """#
-                )
+                        rather than
 
-                code(
-                    language: "text",
-                    content: #"""
-                    domain depends heavily on interface
-                    """#
-                )
+                        domain depends heavily on interface
+                        """#
+                    )
+                }
 
-                paragraph(
-                    #"""
-                    But not every outward-facing protocol conformance requires a mirror type or adapter.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The architecture should avoid boilerplate as well as coupling.
-                    """#
+                list(
+                    style: .unordered,
+                    items: [
+                        "Prefer outward adaptation when the consumer introduces substantial representation, runtime behavior, lifecycle, policy, or transitive dependency weight.",
+                        "Allow direct conformance when the dependency is deliberately lightweight and the conformance faithfully exposes meaning the domain already has.",
+                        "Do not manufacture a mirror type merely to make the dependency graph look theoretically pure.",
+                        "Judge the boundary by the isolation it actually creates, not by the number of adapter types present.",
+                    ]
                 )
             }
 
@@ -193,100 +126,55 @@ public enum BoundaryAdaptationGuideline:
             ) {
                 paragraph(
                     #"""
-                    A domain type may reasonably conform directly to a lightweight integration protocol when all of the following are substantially true:
+                    A direct conformance can be the more cohesive design when the protocol expresses an interface the domain value already satisfies and adding an adapter would merely duplicate the same representation.
                     """#
                 )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    the dependency is intentionally lightweight
-                    the dependency is stable and controlled
-                    the conformance faithfully exposes the existing domain value
-                    the conformance does not add substantial consumer-specific state
-                    the conformance does not distort the domain model
-                    an adapter would mostly mirror the same type
-                    the direct conformance avoids repeated boilerplate or undesirable retroactive conformances
-                    """#
+                list(
+                    style: .unordered,
+                    items: [
+                        "The dependency is intentionally lightweight.",
+                        "The dependency is stable and controlled.",
+                        "The conformance faithfully exposes the existing domain value.",
+                        "The conformance does not add substantial consumer-specific state or behavior.",
+                        "The conformance does not distort the domain model.",
+                        "An adapter would mostly mirror the same type or mapping.",
+                        "Direct conformance avoids repeated boilerplate or undesirable retroactive conformances.",
+                    ]
                 )
 
-                paragraph(
-                    #"""
-                    A command-line argument protocol is a good example of a possible exception.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Suppose:
-                    """#
-                )
-
-                code(
-                    language: "swift",
-                    content: #"""
-                    public enum BusinessEntity: String, Sendable, Codable {
-                        case vof
-                    }
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    already represents the exact values the CLI should accept.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    If a lightweight Arguments protocol can express that directly, this may be preferable:
-                    """#
-                )
-
-                code(
-                    language: "swift",
-                    content: #"""
-                    public enum BusinessEntity:
-                        String,
-                        Sendable,
-                        Codable,
-                        ArgumentValue
-                    {
-                        case vof
-                    }
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    to manufacturing:
-                    """#
-                )
-
-                code(
-                    language: "swift",
-                    content: #"""
-                    enum BusinessEntityArgument {
-                        case vof
-                    
-                        var businessEntity: BusinessEntity {
-                            .vof
+                example("Do not manufacture a mirror value for a faithful lightweight conformance") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        public enum BusinessEntity: String, Sendable, Codable {
+                            case vof
                         }
-                    }
-                    """#
-                )
 
-                paragraph(
-                    #"""
-                    purely to keep the domain target theoretically free from all interface protocol conformances.
-                    """#
-                )
+                        // Reasonable when ArgumentValue is deliberately lightweight
+                        // and represents exactly the same accepted values.
+                        public enum BusinessEntity: String, Sendable, Codable, ArgumentValue {
+                            case vof
+                        }
 
-                paragraph(
-                    #"""
-                    The adapter would add another representation without adding another meaning.
-                    """#
-                )
+                        // Avoid manufacturing another representation only
+                        // to preserve theoretical boundary purity.
+                        enum BusinessEntityArgument {
+                            case vof
+
+                            var businessEntity: BusinessEntity {
+                                .vof
+                            }
+                        }
+                        """#
+                    )
+
+                    paragraph(
+                        #"""
+                        The mirror type adds another representation without adding another meaning. That is different from an adapter that genuinely isolates a substantial consumer domain.
+                        """#
+                    )
+                }
             }
 
         case .dependency_cost:
@@ -300,44 +188,34 @@ public enum BoundaryAdaptationGuideline:
             ) {
                 paragraph(
                     #"""
-                    The acceptability of direct conformance depends partly on what is imported.
+                    The architectural cost of direct integration depends on what the dependency actually brings inward. A microscopic protocol-only library is materially different from a framework carrying runtime behavior, policy, lifecycle, or a large transitive graph.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    A heavy interface framework that brings substantial runtime behavior, policy, or transitive dependencies inward is materially different from a microscopic protocol-only library intended to support such conformances.
-                    """#
-                )
+                example("Evaluate coupling, not merely import direction") {
+                    quote(
+                        #"""
+                        Does the domain import something outward-facing?
+                        """#
+                    )
 
-                paragraph(
-                    #"""
-                    The question is not merely:
-                    """#
-                )
+                    paragraph(
+                        #"""
+                        That question is too weak on its own. Ask instead:
+                        """#
+                    )
 
-                quote(
-                    #"""
-                    Does the domain import something outward-facing?
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The better questions are:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    What semantic coupling does this introduce?
-                    What dependency weight does it introduce?
-                    Does the conformance distort the domain?
-                    Does an adapter actually provide isolation?
-                    Would the adapter merely duplicate the same value?
-                    """#
-                )
+                    list(
+                        style: .unordered,
+                        items: [
+                            "What semantic coupling does this introduce?",
+                            "What runtime or transitive dependency weight does it introduce?",
+                            "Does the conformance distort the domain?",
+                            "Does an adapter actually provide meaningful isolation?",
+                            "Would the adapter merely duplicate the same value?",
+                        ]
+                    )
+                }
             }
 
         case .retroactive_conformance_cost:
@@ -351,31 +229,25 @@ public enum BoundaryAdaptationGuideline:
             ) {
                 paragraph(
                     #"""
-                    Moving every conformance outward can produce:
+                    Pushing every integration conformance outward can make the system less cohesive even while making the dependency graph appear purer.
                     """#
                 )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    repeated retroactive conformances
-                    warnings
-                    duplicated mappings
-                    mirror enums
-                    boilerplate adapters
-                    fragmented knowledge about the same canonical value
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Those costs are real.
-                    """#
+                list(
+                    style: .unordered,
+                    items: [
+                        "repeated retroactive conformances",
+                        "compiler warnings or ownership ambiguity around those conformances",
+                        "duplicated mappings",
+                        "mirror enums and wrapper values",
+                        "boilerplate adapters",
+                        "fragmented knowledge about one canonical value",
+                    ]
                 )
 
                 paragraph(
                     #"""
-                    Boundary purity should not be pursued mechanically when it makes the system less cohesive without creating meaningful isolation.
+                    Those are real architectural costs. Boundary purity should not be pursued mechanically when it adds duplication without creating meaningful isolation.
                     """#
                 )
             }
@@ -390,31 +262,25 @@ public enum BoundaryAdaptationGuideline:
             ) {
                 paragraph(
                     #"""
-                    The lightweight-conformance exception does not justify embedding:
+                    The lightweight-conformance exception has a clear limit. If adopting the consumer interface changes what the domain type must represent or how the domain must behave, the adaptation is no longer lightweight.
                     """#
                 )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    terminal rendering
-                    HTTP response construction
-                    Agentic result envelopes
-                    database transport models
-                    GUI state
-                    framework lifecycle
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    into core domain types merely because a protocol could technically expose them.
-                    """#
+                list(
+                    style: .unordered,
+                    items: [
+                        "terminal rendering and ANSI presentation",
+                        "HTTP response construction and transport concerns",
+                        "Agentic result envelopes",
+                        "database transport models",
+                        "GUI state",
+                        "framework lifecycle and runtime behavior",
+                    ]
                 )
 
                 paragraph(
                     #"""
-                    When adopting the protocol meaningfully changes what the type represents or how the domain must behave, prefer an adapter.
+                    Keep those concerns outside core domain types even when a protocol could technically be made to expose them. Prefer an adapter when the integration introduces substantial new representation, behavior, ownership, or dependency weight.
                     """#
                 )
             }
@@ -429,14 +295,18 @@ public enum BoundaryAdaptationGuideline:
             ) {
                 paragraph(
                     #"""
-                    Do not force all adaptation into one generic translation framework.
+                    An adapter only needs to solve the boundary that actually exists. A small explicit translation between two real domains is often clearer than a universal framework designed around hypothetical future consumers.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    A small explicit adapter between two real domains is often clearer than a universal abstraction intended to anticipate every future consumer.
-                    """#
+                list(
+                    style: .unordered,
+                    items: [
+                        "Name the domains being connected clearly.",
+                        "Keep translation logic near the boundary whose semantics it understands.",
+                        "Generalize only after several real adapters demonstrate reusable common structure.",
+                        "Do not introduce a universal adaptation protocol merely because multiple adapters can be imagined.",
+                    ]
                 )
             }
         }

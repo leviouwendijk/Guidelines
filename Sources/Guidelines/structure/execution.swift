@@ -1,9 +1,4 @@
-public enum ExecutionGuideline:
-    String,
-    Sendable,
-    Hashable,
-    CaseIterable
-{
+public enum ExecutionGuideline: String, Sendable, Hashable, CaseIterable {
     case remove_ambiguity_before_execution
     case reject_material_plan_drift
     case owns_domain_effects
@@ -17,12 +12,12 @@ public enum ExecutionGuideline:
             .init(
                 title: "Remove avoidable ambiguity before execution",
                 summary: #"""
-                Execution should receive sufficiently resolved intent or a plan and
-                perform the domain work rather than repeatedly rediscovering what should
-                happen.
+                Execution should receive sufficiently resolved intent or a concrete plan
+                and perform the domain work rather than repeatedly rediscovering what
+                should happen.
                 """#
             ) {
-                paragraph(
+                quote(
                     #"""
                     Execution should be boring.
                     """#
@@ -30,47 +25,36 @@ public enum ExecutionGuideline:
 
                 paragraph(
                     #"""
-                    By the time an operation reaches execution, as much ambiguity as reasonably possible should already have been removed.
+                    By the time an operation reaches execution, remove as much avoidable interpretive ambiguity as practical. Execution should primarily carry out already meaningful work rather than re-parse loose input, re-resolve ordinary intent, or silently invent a new plan.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    Execution receives either:
-                    """#
-                )
+                example("Let execution receive concrete meaning") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        simple operation
+                            Resolved Input
+                                ↓
+                            Execution
+                                ↓
+                            Result
 
-                code(
-                    language: "text",
-                    content: #"""
-                    Resolved Input
-                    """#
-                )
+                        planned operation
+                            Plan
+                                ↓
+                            Execution
+                                ↓
+                            Result
+                        """#
+                    )
 
-                paragraph(
-                    #"""
-                    or, for operations where planning is valuable:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    Plan
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    and performs the domain work.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    This is where the intended side effects happen.
-                    """#
-                )
+                    paragraph(
+                        #"""
+                        This is the boundary where intended domain effects occur. Resolution and planning may be omitted when they add no independent value, but ambiguity should not survive into execution merely because earlier roles were collapsed.
+                        """#
+                    )
+                }
             }
 
         case .reject_material_plan_drift:
@@ -84,37 +68,31 @@ public enum ExecutionGuideline:
             ) {
                 paragraph(
                     #"""
-                    A plan may become stale after it is prepared.
+                    A concrete plan may become stale after inspection or approval. Before effectful execution, re-check the domain preconditions whose change could materially alter the work the plan represents.
+                    """#
+                )
+
+                list(
+                    style: .unordered,
+                    items: [
+                        "file fingerprints or expected before-state changed",
+                        "sync source or destination identity changed",
+                        "deployment input changed",
+                        "accounting state changed",
+                        "Git base revision moved",
+                        "remote resource version changed",
+                    ]
+                )
+
+                quote(
+                    #"""
+                    Do not execute materially different work under an earlier preview, approval, test, or expectation.
                     """#
                 )
 
                 paragraph(
                     #"""
-                    Before effectful execution, verify domain-relevant preconditions when changed state could materially alter what the approved or inspected plan means.
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    file fingerprint changed
-                    sync source changed
-                    deployment input changed
-                    accounting state changed
-                    Git base revision moved
-                    remote resource version changed
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    When material drift is detected, reject the stale plan, re-plan, or explicitly re-resolve according to domain policy.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Do not silently execute materially different work under an earlier preview, approval, test, or expectation.
+                    When material drift is detected, reject the stale plan, produce a new plan, or explicitly re-resolve according to domain policy. If the resulting work is materially different, treat it as new work for any inspection or approval guarantees that matter.
                     """#
                 )
             }
@@ -129,43 +107,51 @@ public enum ExecutionGuideline:
             ) {
                 paragraph(
                     #"""
-                    Execution may:
+                    Execution is where the operation performs the effects that belong to the domain. Those effects may be substantial; what should remain outside is consumer-specific presentation and interaction policy.
                     """#
                 )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    write files
-                    run subprocesses
-                    update records
-                    move artifacts
-                    send requests
-                    compile output
-                    perform synchronization
-                    """#
-                )
+                example("Keep effect ownership separate from presentation ownership") {
+                    paragraph(
+                        #"""
+                        Execution may legitimately:
+                        """#
+                    )
+
+                    list(
+                        style: .unordered,
+                        items: [
+                            "write files",
+                            "run subprocesses",
+                            "update records",
+                            "move artifacts",
+                            "send requests",
+                            "compile output",
+                            "perform synchronization",
+                        ]
+                    )
+
+                    paragraph(
+                        #"""
+                        Execution should not need to decide:
+                        """#
+                    )
+
+                    list(
+                        style: .unordered,
+                        items: [
+                            "how output is colored",
+                            "whether JSON or pretty text is desired",
+                            "what the terminal width is",
+                            "how an Agentic result should be phrased",
+                            "how a GUI displays progress",
+                        ]
+                    )
+                }
 
                 paragraph(
                     #"""
-                    It should not need to decide:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    how output is colored
-                    whether JSON or pretty text is desired
-                    what terminal width is
-                    how an Agentic result should be phrased
-                    how a GUI displays progress
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Execution should know how to do the work, not how every possible consumer wants that work represented.
+                    Execution should know how to do the work and what semantic outcome it produced, not how every possible consumer wants that work represented.
                     """#
                 )
             }
@@ -181,33 +167,29 @@ public enum ExecutionGuideline:
             ) {
                 paragraph(
                     #"""
-                    Ambient output may be useful for presentation, diagnostics, or observation.
+                    Ambient output may be useful for presentation, diagnostics, or observation. It should not be the only place where a reusable operation communicates meaningful state.
                     """#
                 )
+
+                example("Give each kind of information an explicit semantic path") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        final semantic outcome
+                            → Result / domain value
+
+                        temporal progress
+                            → Event / structured observation
+
+                        human-facing output
+                            → presenter / interface
+                        """#
+                    )
+                }
 
                 paragraph(
                     #"""
-                    It should not be the only place where a reusable operation communicates its meaningful outcome.
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    final semantic outcome
-                        -> return Result / domain value
-
-                    temporal progress
-                        -> emit Event / structured observation
-
-                    human-facing output
-                        -> presenter / interface
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    A CLI may print the returned result and render emitted events. Another Swift caller should be able to use the same operation without parsing those prints.
+                    A CLI may print the returned result and render emitted events. Another Swift caller should be able to use the same operation without parsing those prints, scraping logs, or observing terminal state.
                     """#
                 )
             }
@@ -222,36 +204,27 @@ public enum ExecutionGuideline:
             ) {
                 paragraph(
                     #"""
-                    Execution may emit typed events.
+                    Typed events let execution expose temporal domain information without taking ownership of how that information is shown.
                     """#
                 )
+
+                example("Project one event stream into different consumers") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        execution emits Event
+                            ├── CLI renders progress
+                            ├── Agentic records runtime observation
+                            ├── GUI updates state
+                            ├── structured logger records it
+                            └── another library ignores it
+                        """#
+                    )
+                }
 
                 paragraph(
                     #"""
-                    That does not mean it prints progress itself.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The same event stream can be:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    rendered by a CLI
-                    recorded by Agentic
-                    shown by a GUI
-                    written to structured logs
-                    ignored by another library
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    without changing the execution surface.
+                    The execution surface remains the same regardless of which observers are attached. The Events chapter governs the event representation and its relationship to authoritative results.
                     """#
                 )
             }
@@ -260,26 +233,24 @@ public enum ExecutionGuideline:
             .init(
                 title: "Cancellation and failure remain domain-neutral",
                 summary: #"""
-                Keep cancellation, interruption, and typed execution failures
-                independent of presentation wherever practical.
+                Keep cancellation, interruption, and typed execution failures independent
+                of presentation wherever practical.
                 """#
             ) {
                 paragraph(
                     #"""
-                    Long-running execution may support cancellation or interruption.
+                    Long-running execution may support cancellation or interruption, and execution may fail while carrying out its contract. Those mechanics should remain expressible without requiring terminal, GUI, HTTP, or Agentic presentation concepts.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    Those mechanics should remain independent of presentation wherever practical.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Likewise, execution failures should be expressed as meaningful typed errors rather than presentation strings.
-                    """#
+                list(
+                    style: .unordered,
+                    items: [
+                        "Represent cancellation or interruption through execution semantics rather than presenter state.",
+                        "Preserve typed failure meaning instead of reducing failures to display strings.",
+                        "Let outer interfaces decide whether a failure becomes terminal diagnostics, an HTTP response, a GUI state, or another projection.",
+                        "Do not make presentation callbacks or ambient output the only signal that execution stopped or failed.",
+                    ]
                 )
             }
         }

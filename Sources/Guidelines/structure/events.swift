@@ -1,9 +1,4 @@
-public enum EventGuideline:
-    String,
-    Sendable,
-    Hashable,
-    CaseIterable
-{
+public enum EventGuideline: String, Sendable, Hashable, CaseIterable {
     case temporal_observation
     case not_presentation
     case optional_consumption
@@ -20,71 +15,49 @@ public enum EventGuideline:
             ) {
                 paragraph(
                     #"""
-                    Events describe what happens during execution.
+                    Events answer what happened during execution. They expose temporal domain observations without replacing the result that answers what the operation ultimately produced.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    They answer:
-                    """#
-                )
+                example("Keep event vocabulary temporal and domain-native") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        Build.Event
+                            resolvingDependencies
+                            compiling(target:)
+                            linking(target:)
+                            installing(destination:)
+                        """#
+                    )
+
+                    code(
+                        language: "text",
+                        content: #"""
+                        Sync.Event
+                            inspecting
+                            comparing
+                            copying(path:)
+                            deleting(path:)
+                            runningPostSyncCommand
+                        """#
+                    )
+
+                    code(
+                        language: "text",
+                        content: #"""
+                        Concatenation.Event
+                            scanning
+                            fingerprinting
+                            cacheHit(path:)
+                            rendering(path:)
+                        """#
+                    )
+                }
 
                 quote(
                     #"""
-                    What happened during execution?
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    They do not answer:
-                    """#
-                )
-
-                quote(
-                    #"""
-                    What is the final authoritative semantic outcome?
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Examples:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    Build.Event
-                        resolvingDependencies
-                        compiling(target:)
-                        linking(target:)
-                        installing(destination:)
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    Sync.Event
-                        inspecting
-                        comparing
-                        copying(path:)
-                        deleting(path:)
-                        runningPostSyncCommand
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    Concatenation.Event
-                        scanning
-                        fingerprinting
-                        cacheHit(path:)
-                        rendering(path:)
+                    Events describe the execution timeline; results carry authoritative final meaning.
                     """#
                 )
             }
@@ -100,55 +73,43 @@ public enum EventGuideline:
             ) {
                 paragraph(
                     #"""
-                    An event may contain structured information:
+                    An event should preserve the structured information that occurred, not the particular words, colors, rows, or interface state one consumer uses to present it.
                     """#
                 )
 
-                code(
-                    language: "swift",
-                    content: #"""
-                    .copying(
-                        source: ...,
-                        destination: ...,
-                        bytes: ...
+                example("Separate an observation from its projections") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        .copying(
+                            source: source,
+                            destination: destination,
+                            bytes: bytes
+                        )
+                        """#
                     )
-                    """#
-                )
+
+                    code(
+                        language: "text",
+                        content: #"""
+                        CLI
+                            "copying Package.swift"
+
+                        GUI
+                            update progress row
+
+                        Agentic
+                            retain runtime event
+
+                        library caller
+                            ignore event
+                        """#
+                    )
+                }
 
                 paragraph(
                     #"""
-                    The CLI may render:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    copying  Package.swift
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    A GUI may update a progress row.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Agentic may retain it as a runtime event.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Another library may ignore it.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The event itself should remain domain information.
+                    The projections may differ freely because the event itself remains domain information.
                     """#
                 )
             }
@@ -157,76 +118,57 @@ public enum EventGuideline:
             .init(
                 title: "Events are optional to consume",
                 summary: #"""
-                A caller should be able to ignore events without losing the
-                authoritative result; do not require event reconstruction to discover
-                final semantic state.
+                A caller should be able to ignore events without losing the authoritative
+                result; do not require event reconstruction to discover final semantic
+                state.
                 """#
             ) {
                 paragraph(
                     #"""
-                    A caller should be able to ignore events without losing the actual result of the operation.
+                    Events provide temporal observation, not required semantic reconstruction. A caller that does not care about progress should still receive the complete authoritative result of the operation.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    Events provide temporal observation, not required semantic reconstruction.
-                    """#
-                )
+                example("Do not force callers to rebuild the result from events") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        // Avoid when copiedFiles is part of the final outcome.
+                        var copied: [Path] = []
 
-                paragraph(
-                    #"""
-                    Avoid designs where callers must do this:
-                    """#
-                )
-
-                code(
-                    language: "swift",
-                    content: #"""
-                    var copied = []
-                    
-                    for event in events {
-                        if case let .copied(path) = event {
-                            copied.append(path)
+                        for event in events {
+                            if case let .copied(path) = event {
+                                copied.append(path)
+                            }
                         }
-                    }
-                    """#
-                )
+                        """#
+                    )
 
-                paragraph(
-                    #"""
-                    merely to determine the authoritative list of copied files.
-                    """#
-                )
+                    paragraph(
+                        #"""
+                        If `copiedFiles` is meaningful final state, return it in the result instead of requiring every caller to reconstruct it from the event stream.
+                        """#
+                    )
+                }
 
-                paragraph(
-                    #"""
-                    If copiedFiles is part of the meaningful outcome, it belongs in the result.
-                    """#
-                )
+                example("Allow temporal and final representations to overlap") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        Events
+                            temporal observation
 
-                paragraph(
-                    #"""
-                    Conceptually:
-                    """#
-                )
+                        Result
+                            authoritative semantic outcome
+                        """#
+                    )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    Events
-                        temporal observation
-                    
-                    Result
-                        authoritative semantic outcome
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Events may overlap informationally with the final result. That duplication is legitimate because the two representations serve different temporal roles.
-                    """#
-                )
+                    paragraph(
+                        #"""
+                        Events and results may contain some of the same information. That duplication is legitimate when the two representations serve different temporal roles.
+                        """#
+                    )
+                }
             }
         }
     }

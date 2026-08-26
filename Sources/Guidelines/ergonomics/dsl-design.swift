@@ -1,9 +1,4 @@
-public enum DSLDesignGuideline:
-    String,
-    Sendable,
-    Hashable,
-    CaseIterable
-{
+public enum DSLDesignGuideline: String, Sendable, Hashable, CaseIterable {
     case start_from_call_site
     case domain_word_first
     case overloads_by_need
@@ -30,67 +25,42 @@ public enum DSLDesignGuideline:
                 making them the primary writing experience.
                 """#
             ) {
-            paragraph(
-                #"""
-                A good DSL should make the common case feel like the language wanted to say it that way.
-                """#
-            )
+                paragraph(
+                    #"""
+                    A good DSL should make the common case feel like the language wanted to say it that way. The aim is not merely fewer characters: it is less ceremony, less repeated context, clearer defaults, and a stronger sense that the caller is describing intent rather than assembling plumbing.
+                    """#
+                )
 
-            paragraph(
-                #"""
-                The aim is not just fewer characters. The aim is a better call-site shape: less ceremony, less repeated context, clearer defaults, and a stronger sense that the user is describing intent rather than assembling plumbing.
-                """#
-            )
+                example("Design outward from the desired call site") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        // Avoid making the structural initializer the normal surface.
+                        return [
+                            Route(
+                                method: .post,
+                                path: "/encrypt",
+                                handler: { request, router in
+                                    try await encrypt(request)
+                                }
+                            )
+                        ]
 
-            paragraph(
-                #"""
-                Design the surface from the code we want to write most often.
-                """#
-            )
-
-            paragraph(
-                #"""
-                Not:
-                """#
-            )
-
-            code(
-                language: "swift",
-                content: #"""
-                return [
-                    Route(
-                        method: .post,
-                        path: "/encrypt",
-                        handler: { request, router in
-                            try await encrypt(request)
+                        // Prefer the domain-facing form for the common path.
+                        return routes {
+                            post("encrypt") { request in
+                                try await encrypt(request)
+                            }
                         }
+                        """#
                     )
-                ]
-                """#
-            )
-
-            paragraph(
-                #"""
-                Prefer:
-                """#
-            )
-
-            code(
-                language: "swift",
-                content: #"""
-                return routes {
-                    post("encrypt") { request in
-                        try await encrypt(request)
-                    }
                 }
-                """#
-            )
 
-            paragraph(
-                #"""
-                The full initializer can still exist, but it should not be the primary writing experience. In the normal path, the DSL should carry the boring structural parts for us: method, path construction, handler adaptation, and collection building. The Server route DSL does this with a routes result-builder container and per-method route functions such as get, post, put, patch, delete, and options.
-                """#
-            )
+                paragraph(
+                    #"""
+                    The full initializer can still exist for lower-level control. It should simply not dominate the ordinary writing experience when a DSL can carry structural concerns such as method selection, path construction, handler adaptation, and collection building on the caller's behalf.
+                    """#
+                )
             }
 
         case .domain_word_first:
@@ -102,49 +72,36 @@ public enum DSLDesignGuideline:
                 be restated in child symbols.
                 """#
             ) {
-            paragraph(
-                #"""
-                For route APIs, the HTTP method is not a parameter detail. It is the sentence opener.
-                """#
-            )
-
-            paragraph(
-                #"""
-                Not:
-                """#
-            )
-
-            code(
-                language: "swift",
-                content: #"""
-                Route(
-                    method: .post,
-                    path: "/decrypt",
-                    handler: decrypt
+                paragraph(
+                    #"""
+                    Put the strongest domain word at the point where the caller naturally begins the phrase. In a route DSL, the HTTP method is not incidental parameter data; it is usually the sentence opener.
+                    """#
                 )
-                """#
-            )
 
-            paragraph(
-                #"""
-                Prefer:
-                """#
-            )
+                example("Move the domain word into the call shape") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        // Avoid.
+                        Route(
+                            method: .post,
+                            path: "/decrypt",
+                            handler: decrypt
+                        )
 
-            code(
-                language: "swift",
-                content: #"""
-                post("decrypt") { request in
-                    try await decrypt(request)
+                        // Prefer.
+                        post("decrypt") { request in
+                            try await decrypt(request)
+                        }
+                        """#
+                    )
                 }
-                """#
-            )
 
-            paragraph(
-                #"""
-                This is the same rule as wrapper-accessor APIs: move repeated context leftward so the final symbol can stay small. In a route DSL, the method itself is the wrapper. Once the call begins with post, the symbol no longer needs route, http, method, handler, or endpoint in its name.
-                """#
-            )
+                paragraph(
+                    #"""
+                    Moving shared context leftward lets the remaining symbols stay small. Once a call begins with `post`, the child surface does not need to repeat words such as route, HTTP, method, handler, or endpoint merely to restate what the call already says.
+                    """#
+                )
             }
 
         case .overloads_by_need:
@@ -156,53 +113,49 @@ public enum DSLDesignGuideline:
                 behind the public surface.
                 """#
             ) {
-            paragraph(
-                #"""
-                A DSL should expose the amount of context the route actually needs.
-                """#
-            )
+                paragraph(
+                    #"""
+                    A DSL should expose only the context the caller actually needs. Do not make every call site acknowledge the richest internal handler shape merely because the implementation eventually normalizes to one.
+                    """#
+                )
 
-            code(
-                language: "swift",
-                content: #"""
-                get {
-                    .text("ok")
-                }
-                
-                get("ping") {
-                    .text("pong")
-                }
-                
-                post("echo") { request in
-                    .text(request.body)
-                }
-                
-                get("routes") { request, router in
-                    try await router.list()
-                }
-                """#
-            )
+                example("Offer a small ladder of useful shapes") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        get {
+                            .text("ok")
+                        }
 
-            paragraph(
-                #"""
-                The overloads should form a small ladder:
-                """#
-            )
+                        get("ping") {
+                            .text("pong")
+                        }
 
-            list(
-                style: .ordered,
-                items: [
-                    "no request, no router",
-                    "request only",
-                    "request plus router",
-                ]
-            )
+                        post("echo") { request in
+                            .text(request.body)
+                        }
 
-            paragraph(
-                #"""
-                That gives each route only the parameters it actually uses. The implementation can still normalize everything to one underlying handler shape. The public shape should not force unused underscores into every call site. The Server route initializers follow this pattern by providing parameterless, request-only, and request-plus-router forms.
-                """#
-            )
+                        get("routes") { request, router in
+                            try await router.list()
+                        }
+                        """#
+                    )
+                }
+
+                list(
+                    style: .ordered,
+                    items: [
+                        "no request and no router when neither is needed",
+                        "request only when request context is needed",
+                        "request plus router when the operation genuinely needs both",
+                    ]
+                )
+
+                paragraph(
+                    #"""
+                    The public overload family should prevent unused placeholders from leaking into ordinary call sites. Normalize the variants behind the surface when that keeps the implementation coherent.
+                    """#
+                )
             }
 
         case .visible_defaults:
@@ -213,41 +166,34 @@ public enum DSLDesignGuideline:
                 the meaning of the default visible in the API shape.
                 """#
             ) {
-            paragraph(
-                #"""
-                A default root route should be a separate shape, not a string the caller has to remember.
-                """#
-            )
+                paragraph(
+                    #"""
+                    A default is useful when it removes a choice callers should not have to restate. Prefer a distinct call shape whose meaning is obvious over magic strings, empty values, or optional parameters that encode the same convention indirectly.
+                    """#
+                )
 
-            code(
-                language: "swift",
-                content: #"""
-                get {
-                    .text("home")
+                example("Make the root route a visible default") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        // Prefer: the no-path overload means root.
+                        get {
+                            .text("home")
+                        }
+
+                        // Avoid making callers remember the root sentinel.
+                        get("/") {
+                            .text("home")
+                        }
+                        """#
+                    )
                 }
-                """#
-            )
 
-            paragraph(
-                #"""
-                is better than:
-                """#
-            )
-
-            code(
-                language: "swift",
-                content: #"""
-                get("/") {
-                    .text("home")
-                }
-                """#
-            )
-
-            paragraph(
-                #"""
-                The root path is common enough that it earns a default. But the default should stay visible in the DSL design: a no-path overload means root. That is cleaner than making callers pass empty strings, optional paths, or magic values. The Server DSL has an explicit root default behind the route functions.
-                """#
-            )
+                paragraph(
+                    #"""
+                    The syntax disappears, but the decision remains legible because the overload itself communicates what was defaulted.
+                    """#
+                )
             }
 
         case .composable_components:
@@ -259,41 +205,34 @@ public enum DSLDesignGuideline:
                 sites.
                 """#
             ) {
-            paragraph(
-                #"""
-                A route path is conceptually a list of parts.
-                """#
-            )
+                paragraph(
+                    #"""
+                    When a value is conceptually composed from domain parts, let the API accept those parts directly when doing so removes incidental separator, escaping, or normalization work from the caller.
+                    """#
+                )
 
-            code(
-                language: "swift",
-                content: #"""
-                post("users", userIdentifier, "reset-password") { request in
-                    try await resetPassword(request)
+                example("Compose route paths from components") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        // Prefer when the path is naturally a list of parts.
+                        post("users", userIdentifier, "reset-password") { request in
+                            try await resetPassword(request)
+                        }
+
+                        // Avoid pushing path assembly back into the call site.
+                        post("/users/\(userIdentifier)/reset-password") { request in
+                            try await resetPassword(request)
+                        }
+                        """#
+                    )
                 }
-                """#
-            )
 
-            paragraph(
-                #"""
-                is usually nicer than:
-                """#
-            )
-
-            code(
-                language: "swift",
-                content: #"""
-                post("/users/\(userIdentifier)/reset-password") { request in
-                    try await resetPassword(request)
-                }
-                """#
-            )
-
-            paragraph(
-                #"""
-                The caller should not have to think about leading slashes, double slashes, or separators while writing the domain action. Variadic path components give the DSL a more natural shape, while the library owns path normalization. The Server code has helpers for path components and route overloads that join variadic components.
-                """#
-            )
+                paragraph(
+                    #"""
+                    The library should own concerns such as leading separators, duplicate separators, and normalization when those concerns are structural rather than domain meaning.
+                    """#
+                )
             }
 
         case .builder_composition:
@@ -305,54 +244,43 @@ public enum DSLDesignGuideline:
                 users can organize by meaning.
                 """#
             ) {
-            paragraph(
-                #"""
-                A result builder should not punish the user for extracting pieces.
-                """#
-            )
+                paragraph(
+                    #"""
+                    A result builder should preserve the caller's ability to extract and group meaningful pieces. The DSL should not require everything to be flattened into one monolithic builder body simply to satisfy its construction machinery.
+                    """#
+                )
 
-            code(
-                language: "swift",
-                content: #"""
-                return routes {
-                    StandardRoutes.listRoutes()
-                
-                    authRoutes
-                    adminRoutes
-                
-                    if config.enableDebugRoutes {
-                        debugRoutes
-                    }
-                
-                    post("encrypt") { request in
-                        try await encrypt(request)
-                    }
+                example("Compose extracted and conditional route groups") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        return routes {
+                            StandardRoutes.listRoutes()
+
+                            authRoutes
+                            adminRoutes
+
+                            if config.enableDebugRoutes {
+                                debugRoutes
+                            }
+
+                            post("encrypt") { request in
+                                try await encrypt(request)
+                            }
+                        }
+                        """#
+                    )
                 }
-                """#
-            )
 
-            paragraph(
-                #"""
-                The builder should accept:
-                """#
-            )
-
-            code(
-                language: "swift",
-                content: #"""
-                Route
-                [Route]
-                optional routes
-                conditional routes
-                groups with middleware
-                """#
-            )
-
-            paragraph(
-                #"""
-                That lets the user organize by meaning without flattening everything manually. The route builder supports single routes, arrays, optional branches, either branches, arrays from loops, and grouped middleware expressions.
-                """#
-            )
+                list(
+                    style: .unordered,
+                    items: [
+                        "accept individual domain values",
+                        "accept extracted collections of those values",
+                        "support optional and conditional branches when the DSL naturally needs them",
+                        "support loops and groups when they preserve meaningful organization",
+                    ]
+                )
             }
 
         case .modifiers_after_subject:
@@ -364,45 +292,39 @@ public enum DSLDesignGuideline:
                 bloating its initializer.
                 """#
             ) {
-            paragraph(
-                #"""
-                When a route is created first and then decorated, the modifier should chain after the route.
-                """#
-            )
+                paragraph(
+                    #"""
+                    Keep the primary subject readable first, then attach cross-cutting behavior as a second phrase when the language supports that relationship naturally.
+                    """#
+                )
 
-            code(
-                language: "swift",
-                content: #"""
-                post("encrypt") { request in
-                    try await encrypt(request)
+                example("Attach middleware after the route") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        // Prefer.
+                        post("encrypt") { request in
+                            try await encrypt(request)
+                        }
+                        .use(bearer)
+
+                        // Avoid bloating the primary initializer when the
+                        // middleware is conceptually a modifier.
+                        post(
+                            "encrypt",
+                            middleware: [bearer]
+                        ) { request in
+                            try await encrypt(request)
+                        }
+                        """#
+                    )
                 }
-                .use(bearer)
-                """#
-            )
 
-            paragraph(
-                #"""
-                This reads better than pushing middleware into the route initializer:
-                """#
-            )
-
-            code(
-                language: "swift",
-                content: #"""
-                post(
-                    "encrypt",
-                    middleware: [bearer]
-                ) { request in
-                    try await encrypt(request)
-                }
-                """#
-            )
-
-            paragraph(
-                #"""
-                The route itself remains the noun. The modifier becomes a clear second phrase. This keeps the primary DSL focused on the endpoint shape and lets cross-cutting behavior attach without bloating the initializer. The generated package template uses this shape in its commented route examples.
-                """#
-            )
+                paragraph(
+                    #"""
+                    The route remains the noun and the modifier becomes a clear follow-on phrase. This keeps the core declaration focused while still making attached behavior visible at the call site.
+                    """#
+                )
             }
 
         case .separate_declaration_and_runtime:
@@ -414,52 +336,50 @@ public enum DSLDesignGuideline:
                 focused.
                 """#
             ) {
-            paragraph(
-                #"""
-                A good DSL should keep the domain declaration in one place and the runtime boot process somewhere else.
-                """#
-            )
-
-            code(
-                language: "swift",
-                content: #"""
-                public func routes() throws -> [Route] {
-                    routes {
-                        get("ping") {
-                            .text("pong")
-                        }
-                
-                        post("encrypt") { request in
-                            try await encrypt(request)
-                        }
-                    }
-                }
-                """#
-            )
-
-            paragraph(
-                #"""
-                The app entrypoint can then consume the result.
-                """#
-            )
-
-            code(
-                language: "swift",
-                content: #"""
-                let process = ServerProcess(
-                    config: config,
-                    routes: try routes(),
-                    logger: logger,
-                    activity: activity
+                paragraph(
+                    #"""
+                    Keep declarative domain structure separate from process startup, dependency wiring, and runtime lifecycle when those are different concerns. The declaration surface should read like the capabilities being described; the runtime surface should read like composition and bootstrapping.
+                    """#
                 )
-                """#
-            )
 
-            paragraph(
-                #"""
-                The route file should feel like a table of capabilities. The runtime file should feel like process wiring. Mixing those two makes both APIs worse. The package template separates generated routes.swift from the app process setup.
-                """#
-            )
+                example("Keep route declaration focused") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        public func routes() throws -> [Route] {
+                            routes {
+                                get("ping") {
+                                    .text("pong")
+                                }
+
+                                post("encrypt") { request in
+                                    try await encrypt(request)
+                                }
+                            }
+                        }
+                        """#
+                    )
+                }
+
+                example("Wire the declared routes at runtime") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        let process = ServerProcess(
+                            config: config,
+                            routes: try routes(),
+                            logger: logger,
+                            activity: activity
+                        )
+                        """#
+                    )
+                }
+
+                paragraph(
+                    #"""
+                    Mixing declaration and runtime wiring tends to make both APIs noisier because structural setup starts leaking into the domain sentence.
+                    """#
+                )
             }
 
         case .progressive_disclosure:
@@ -471,63 +391,54 @@ public enum DSLDesignGuideline:
                 user asks for them.
                 """#
             ) {
-            paragraph(
-                #"""
-                Command APIs should have the same philosophy as route APIs: the smallest useful invocation should be tiny, and power should appear only when asked for.
-                """#
-            )
+                paragraph(
+                    #"""
+                    Command APIs should follow the same progressive-disclosure principle as other DSLs: keep the smallest useful invocation small, then reveal named control only as the caller needs it.
+                    """#
+                )
 
-            paragraph(
-                #"""
-                For a command-line DSL, this means:
-                """#
-            )
+                example("Keep the primary command phrase small") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        server-package mailer
 
-            code(
-                language: "swift",
-                content: #"""
-                server-package mailer
-                """#
-            )
+                        server-package mailer --version 2 --yes
+                        """#
+                    )
 
-            paragraph(
-                #"""
-                before:
-                """#
-            )
+                    paragraph(
+                        #"""
+                        The first form expresses the primary noun. The second adds explicit refinements without making those refinements mandatory for the ordinary path.
+                        """#
+                    )
+                }
 
-            code(
-                language: "swift",
-                content: #"""
-                server-package mailer --version 2 --yes
-                """#
-            )
+                example("Let argument roles reveal progressively more control") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        @Argument(help: "Package name")
+                        var name: String?
 
-            paragraph(
-                #"""
-                And in code:
-                """#
-            )
+                        @Option(name: .shortAndLong, help: "Package version number")
+                        var version: Int?
 
-            code(
-                language: "swift",
-                content: #"""
-                @Argument(help: "Package name")
-                var name: String?
-                
-                @Option(name: .shortAndLong, help: "Package version number")
-                var version: Int?
-                
-                @Flag(name: .shortAndLong, help: "Skip confirmation prompts")
-                var yes: Bool = false
-                """#
-            )
+                        @Flag(name: .shortAndLong, help: "Skip confirmation prompts")
+                        var yes: Bool = false
+                        """#
+                    )
+                }
 
-            paragraph(
-                #"""
-                The positional argument carries the primary noun. Options refine it. Flags alter behavior. This matches the route DSL ladder: simple first, named power later. The package command uses an optional positional name, a version option, and a confirmation-skipping flag, falling back to a wizard when no arguments are provided.
-                """#
-            )
+                list(
+                    style: .unordered,
+                    items: [
+                        "let the positional argument carry the primary noun when that matches the command grammar",
+                        "use options to refine the primary choice",
+                        "use flags for behavioral switches",
+                        "keep interactive or advanced paths available without forcing their ceremony into the simplest invocation",
+                    ]
+                )
             }
 
         case .intent_named_options:
@@ -539,49 +450,36 @@ public enum DSLDesignGuideline:
                 instead of the flag name.
                 """#
             ) {
-            paragraph(
-                #"""
-                For commands, options should name the thing the user thinks they are choosing.
-                """#
-            )
+                paragraph(
+                    #"""
+                    Name options after the decision the user thinks they are making. Internal storage types, implementation booleans, and transport details should not leak into the command vocabulary merely because they happen to back the option.
+                    """#
+                )
 
-            paragraph(
-                #"""
-                Good:
-                """#
-            )
+                example("Keep option vocabulary small and intentional") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        # Prefer.
+                        --root
+                        --file
+                        --dry-run
+                        --yes
 
-            code(
-                language: "swift",
-                content: #"""
-                --root
-                --file
-                --dry-run
-                --yes
-                """#
-            )
+                        # Avoid implementation-shaped names.
+                        --package-root-url-string
+                        --template-file-kind-list
+                        --should-not-write-files
+                        --skip-confirmation-prompts
+                        """#
+                    )
+                }
 
-            paragraph(
-                #"""
-                Worse:
-                """#
-            )
-
-            code(
-                language: "swift",
-                content: #"""
-                --package-root-url-string
-                --template-file-kind-list
-                --should-not-write-files
-                --skip-confirmation-prompts
-                """#
-            )
-
-            paragraph(
-                #"""
-                The long internal phrase belongs in help text, not necessarily in the flag name. The DSL surface should be compact; explanation can live beside it. The update command follows this with root, file, yes, and dryRun while using help strings for the fuller meaning.
-                """#
-            )
+                paragraph(
+                    #"""
+                    Put the longer explanation in help text when the short domain word is already sufficient at the call site.
+                    """#
+                )
             }
 
         case .regular_siblings:
@@ -592,44 +490,35 @@ public enum DSLDesignGuideline:
                 learning one shape teaches users how to infer the others.
                 """#
             ) {
-            paragraph(
-                #"""
-                If one method has this family:
-                """#
-            )
+                paragraph(
+                    #"""
+                    A DSL becomes learnable when understanding one sibling lets the caller predict the others. Prefer a regular family over isolated conveniences that force users to memorize exceptions.
+                    """#
+                )
 
-            code(
-                language: "swift",
-                content: #"""
-                post("path") { request in }
-                post("path", request: { request in })
-                post("path", handler: { request, router in })
-                """#
-            )
+                example("Let one route method teach the family") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        post("path") { request in }
+                        post("path", request: { request in })
+                        post("path", handler: { request, router in })
 
-            paragraph(
-                #"""
-                then the sibling methods should have the same family.
-                """#
-            )
+                        get(...)
+                        post(...)
+                        put(...)
+                        patch(...)
+                        delete(...)
+                        options(...)
+                        """#
+                    )
+                }
 
-            code(
-                language: "swift",
-                content: #"""
-                get(...)
-                post(...)
-                put(...)
-                patch(...)
-                delete(...)
-                options(...)
-                """#
-            )
-
-            paragraph(
-                #"""
-                A DSL becomes learnable when the user can infer the next symbol. Once someone understands post, they should not have to relearn put. Regularity is more valuable than clever one-off convenience.
-                """#
-            )
+                paragraph(
+                    #"""
+                    Once the caller understands `post`, similarly capable siblings should expose the same recognizable grammar unless a domain difference genuinely requires another shape.
+                    """#
+                )
             }
 
         case .hide_heavy_types:
@@ -641,72 +530,48 @@ public enum DSLDesignGuideline:
                 DSL path.
                 """#
             ) {
-            paragraph(
-                #"""
-                The user of a DSL should rarely need to name the underlying structural types.
-                """#
-            )
+                paragraph(
+                    #"""
+                    The structural types behind a DSL remain important, but they should not dominate the common call site. Let the surface foreground the domain phrase and reveal heavier representation types only when the caller needs lower-level control.
+                    """#
+                )
 
-            paragraph(
-                #"""
-                Good DSLs let users write:
-                """#
-            )
+                example("Foreground the domain phrase") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        routes {
+                            get("ping") {
+                                .text("pong")
+                            }
 
-            code(
-                language: "swift",
-                content: #"""
-                routes {
-                    get("ping") {
-                        .text("pong")
-                    }
-                
-                    post("echo") { request in
-                        .text(request.body)
-                    }
+                            post("echo") { request in
+                                .text(request.body)
+                            }
+                        }
+                        """#
+                    )
+
+                    paragraph(
+                        #"""
+                        The call site primarily says `get ping` and `post echo`, rather than repeatedly naming the routing machinery that makes those operations possible.
+                        """#
+                    )
                 }
-                """#
-            )
 
-            paragraph(
-                #"""
-                The types are still there:
-                """#
-            )
-
-            code(
-                language: "swift",
-                content: #"""
-                Route
-                Router
-                HTTPRequest
-                HTTPResponse
-                RouteBuilder
-                Middleware
-                """#
-            )
-
-            paragraph(
-                #"""
-                But they are supporting actors. The call site should foreground the domain phrase:
-                """#
-            )
-
-            code(
-                language: "swift",
-                content: #"""
-                get ping
-                post echo
-                use bearer
-                return response
-                """#
-            )
-
-            paragraph(
-                #"""
-                When a route needs lower-level control, the fuller types can become visible. But they should not dominate the common path.
-                """#
-            )
+                example("Keep structural types available behind the surface") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        Route
+                        Router
+                        HTTPRequest
+                        HTTPResponse
+                        RouteBuilder
+                        Middleware
+                        """#
+                    )
+                }
             }
 
         case .small_words:
@@ -718,51 +583,38 @@ public enum DSLDesignGuideline:
                 every symbol.
                 """#
             ) {
-            paragraph(
-                #"""
-                In DSL surfaces, small words can be clearer than long names because the context is already carried by the shape.
-                """#
-            )
+                paragraph(
+                    #"""
+                    Small words are often clearer inside a strong DSL because surrounding structure already supplies the context that a standalone API would otherwise need to encode in the symbol itself.
+                    """#
+                )
 
-            paragraph(
-                #"""
-                Prefer:
-                """#
-            )
+                example("Let the surrounding DSL carry repeated context") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        // Prefer.
+                        routes {
+                            get("ping") {
+                                .text("pong")
+                            }
+                        }
 
-            code(
-                language: "swift",
-                content: #"""
-                routes {
-                    get("ping") {
-                        .text("pong")
-                    }
+                        // Avoid repeating the context in every symbol.
+                        createServerRoutes {
+                            createHTTPGetRoute(path: "ping") {
+                                HTTPResponse.text("pong")
+                            }
+                        }
+                        """#
+                    )
                 }
-                """#
-            )
 
-            paragraph(
-                #"""
-                Over:
-                """#
-            )
-
-            code(
-                language: "swift",
-                content: #"""
-                createServerRoutes {
-                    createHTTPGetRoute(path: "ping") {
-                        HTTPResponse.text("pong")
-                    }
-                }
-                """#
-            )
-
-            paragraph(
-                #"""
-                This follows the same naming principle as nested APIs: do not repeat the parent context in every child symbol. Once we are inside routes, get is enough. Once we are inside post, request is enough. Once we are modifying a route, .use is enough.
-                """#
-            )
+                paragraph(
+                    #"""
+                    This is the same contextual naming principle used by nested APIs: once the surrounding phrase already establishes routes, `get` is enough; once a route is being modified, `.use` can be enough. Keep the small word only while that surrounding context makes it immediately clear.
+                    """#
+                )
             }
 
         case .domain_sentence_test:
@@ -774,54 +626,44 @@ public enum DSLDesignGuideline:
                 plumbing.
                 """#
             ) {
-            paragraph(
-                #"""
-                A DSL design is probably right when the simple call site can be read aloud as a small sentence.
-                """#
-            )
+                paragraph(
+                    #"""
+                    A DSL is probably approaching the right shape when its common call site can be read aloud as a small domain sentence without first translating structural machinery back into intent.
+                    """#
+                )
 
-            code(
-                language: "swift",
-                content: #"""
-                routes {
-                    get("ping") {
-                        .text("pong")
-                    }
-                
-                    post("encrypt") { request in
-                        try await Operation.encrypt(request)
-                    }
-                    .use(bearer)
+                example("Read the call site as a domain sentence") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        routes {
+                            get("ping") {
+                                .text("pong")
+                            }
+
+                            post("encrypt") { request in
+                                try await Operation.encrypt(request)
+                            }
+                            .use(bearer)
+                        }
+                        """#
+                    )
+
+                    code(
+                        language: "text",
+                        content: #"""
+                        routes:
+                            get ping, return pong
+                            post encrypt, use bearer
+                        """#
+                    )
                 }
-                """#
-            )
 
-            paragraph(
-                #"""
-                Reads as:
-                """#
-            )
-
-            code(
-                language: "text",
-                content: #"""
-                routes:
-                    get ping, return pong
-                    post encrypt, use bearer
-                """#
-            )
-
-            paragraph(
-                #"""
-                That is the target.
-                """#
-            )
-
-            paragraph(
-                #"""
-                The DSL should compress the structural machinery until the domain sentence is what remains.
-                """#
-            )
+                paragraph(
+                    #"""
+                    The target is not prose imitation for its own sake. The test is whether the DSL has compressed structural machinery until the domain sentence is what remains.
+                    """#
+                )
             }
         }
     }

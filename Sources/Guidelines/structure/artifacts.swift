@@ -1,9 +1,4 @@
-public enum ArtifactGuideline:
-    String,
-    Sendable,
-    Hashable,
-    CaseIterable
-{
+public enum ArtifactGuideline: String, Sendable, Hashable, CaseIterable {
     case semantic_outcome_vs_material
     case domain_addressable
     case production_not_presentation
@@ -14,92 +9,71 @@ public enum ArtifactGuideline:
             .init(
                 title: "Separate semantic results from produced artifacts",
                 summary: #"""
-                Treat semantic outcome and produced material as related but distinct,
-                and let results reference artifacts without forcing large material into
-                every result.
+                Treat semantic outcome and produced material as related but distinct, and
+                let results reference artifacts without forcing large material into every
+                result.
                 """#
             ) {
                 paragraph(
                     #"""
-                    Result and artifact are related but distinct concepts.
+                    Results and artifacts describe different aspects of an operation. The result carries the semantic outcome; an artifact is material the operation produced.
                     """#
                 )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    Result
-                        semantic outcome
-                    
-                    Artifact
-                        produced material
-                    """#
-                )
+                example("Keep outcome and material distinct") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        Result
+                            compilation succeeded with 4 warnings
 
-                paragraph(
-                    #"""
-                    For example:
-                    """#
-                )
+                        Artifacts
+                            compiled .ec output
+                            generated report
+                            PDF
+                            executable
+                            concatenated document
+                            diff
+                        """#
+                    )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    Result
-                        compilation succeeded with 4 warnings
-                    
-                    Artifacts
-                        compiled .ec output
-                        generated report
-                        PDF
-                        executable
-                        concatenated document
-                        diff
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    An artifact may be referenced by the result.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    This avoids bloating every result with large material while preserving the relationship between the operation and what it produced.
-                    """#
-                )
+                    paragraph(
+                        #"""
+                        A result may reference one or more artifacts without embedding all produced material directly. This preserves the relationship between what happened and what was produced without bloating every result representation.
+                        """#
+                    )
+                }
             }
 
         case .domain_addressable:
             .init(
                 title: "Artifacts remain domain-addressable",
                 summary: #"""
-                Refer to produced material through stable domain information such as
-                paths, URLs, identifiers, metadata, fingerprints, or artifact records.
+                Refer to produced material through stable domain information such as paths,
+                URLs, identifiers, metadata, fingerprints, or artifact records.
                 """#
             ) {
                 paragraph(
                     #"""
-                    Where practical, results should refer to produced material through stable domain information such as:
+                    Where practical, results should refer to produced material through stable domain information rather than through interface-specific wrappers.
                     """#
                 )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    path
-                    URL
-                    identifier
-                    metadata
-                    content fingerprint
-                    artifact record
-                    """#
+                list(
+                    style: .unordered,
+                    items: [
+                        "path",
+                        "URL",
+                        "identifier",
+                        "metadata",
+                        "content fingerprint",
+                        "artifact record",
+                    ]
                 )
 
                 paragraph(
                     #"""
-                    rather than embedding interface-specific wrappers.
+                    Choose the reference shape according to the artifact's domain identity and lifecycle rather than according to whichever presenter first exposes it.
                     """#
                 )
             }
@@ -115,21 +89,28 @@ public enum ArtifactGuideline:
             ) {
                 paragraph(
                     #"""
-                    A generated executable, file, report, or compiled representation may itself be the meaningful product of domain execution.
+                    A generated executable, file, report, compiled representation, or other material may itself be the meaningful product of domain execution. External visibility does not make that production step presentation.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    A presentation layer may then describe or expose that artifact.
-                    """#
-                )
+                example("Present an artifact without redefining its production") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        domain execution
+                            ↓
+                        produced artifact
+                            ↓
+                        terminal / GUI / HTTP / Agentic exposure
+                        """#
+                    )
 
-                paragraph(
-                    #"""
-                    The fact that something is externally visible does not automatically make it presentation.
-                    """#
-                )
+                    paragraph(
+                        #"""
+                        The outer surface may describe, link to, download, render, or otherwise expose the artifact while the artifact remains a domain product.
+                        """#
+                    )
+                }
             }
         }
     }

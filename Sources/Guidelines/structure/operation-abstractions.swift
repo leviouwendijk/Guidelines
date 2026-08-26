@@ -1,9 +1,4 @@
-public enum OperationAbstractionGuideline:
-    String,
-    Sendable,
-    Hashable,
-    CaseIterable
-{
+public enum OperationAbstractionGuideline: String, Sendable, Hashable, CaseIterable {
     case follow_real_convergence
 
     public var content: GuidelineContent {
@@ -18,70 +13,48 @@ public enum OperationAbstractionGuideline:
             ) {
                 paragraph(
                     #"""
-                    The structural model may justify small generic abstractions where several real domains naturally converge.
+                    Small generic operation abstractions can be useful when several real domains already share the same semantic shape. The abstraction should describe that convergence rather than force unrelated domains into symmetry.
                     """#
                 )
+
+                example("Start with the smallest plausible abstraction") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        public protocol Operation: Sendable {
+                            associatedtype Input: Sendable
+                            associatedtype Output: Sendable
+
+                            func run(
+                                _ input: Input
+                            ) async throws -> Output
+                        }
+                        """#
+                    )
+
+                    code(
+                        language: "swift",
+                        content: #"""
+                        public protocol PlannedOperation: Sendable {
+                            associatedtype Input: Sendable
+                            associatedtype Plan: Sendable
+                            associatedtype Output: Sendable
+
+                            func plan(
+                                _ input: Input
+                            ) async throws -> Plan
+
+                            func run(
+                                _ plan: Plan
+                            ) async throws -> Output
+                        }
+                        """#
+                    )
+                }
 
                 paragraph(
                     #"""
-                    The abstraction should follow the architecture.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The architecture should not be distorted to satisfy the abstraction.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    A minimal experiment might be:
-                    """#
-                )
-
-                code(
-                    language: "swift",
-                    content: #"""
-                    public protocol Operation: Sendable {
-                        associatedtype Input: Sendable
-                        associatedtype Output: Sendable
-                    
-                        func run(
-                            _ input: Input
-                        ) async throws -> Output
-                    }
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    For planned operations:
-                    """#
-                )
-
-                code(
-                    language: "swift",
-                    content: #"""
-                    public protocol PlannedOperation: Sendable {
-                        associatedtype Input: Sendable
-                        associatedtype Plan: Sendable
-                        associatedtype Output: Sendable
-                    
-                        func plan(
-                            _ input: Input
-                        ) async throws -> Plan
-                    
-                        func run(
-                            _ plan: Plan
-                        ) async throws -> Output
-                    }
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Observation may remain orthogonal rather than becoming another inheritance requirement:
+                    Observation can remain orthogonal instead of becoming another inheritance requirement merely to make the generic model look complete.
                     """#
                 )
 
@@ -90,21 +63,9 @@ public enum OperationAbstractionGuideline:
                     content: #"""
                     Operation
                     PlannedOperation
-                    
+
                     OperationObserver<Event>
                     OperationExecution<Result, Event>
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Do not settle such abstractions merely because they look symmetrical.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    A useful test is:
                     """#
                 )
 
@@ -116,35 +77,29 @@ public enum OperationAbstractionGuideline:
 
                 paragraph(
                     #"""
-                    Candidate domains may include:
+                    Test candidate abstractions against actual domains rather than hypothetical symmetry.
                     """#
                 )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    Accounting
-                    Concatenation
-                    Syncer
-                    Executable
-                    Media
-                    server operations
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    If they converge naturally, a microscopic generic layer may be justified.
-                    """#
+                list(
+                    style: .unordered,
+                    items: [
+                        "Accounting",
+                        "Concatenation",
+                        "Syncer",
+                        "Executable",
+                        "Media",
+                        "server operations",
+                    ]
                 )
 
                 paragraph(
                     #"""
-                    If they do not, keep the mental model and discard the protocol.
+                    If several real domains converge naturally, a microscopic generic layer may be justified. If they do not, keep the structural mental model and discard the protocol.
                     """#
                 )
 
-                paragraph(
+                quote(
                     #"""
                     The structural discipline is more valuable than a universal generic.
                     """#

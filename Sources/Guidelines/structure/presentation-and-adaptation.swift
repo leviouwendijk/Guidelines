@@ -1,9 +1,4 @@
-public enum PresentationAndAdaptationGuideline:
-    String,
-    Sendable,
-    Hashable,
-    CaseIterable
-{
+public enum PresentationAndAdaptationGuideline: String, Sendable, Hashable, CaseIterable {
     case project_after_domain_meaning
     case delay_irreversible_projection
     case shared_projections
@@ -24,125 +19,77 @@ public enum PresentationAndAdaptationGuideline:
             ) {
                 paragraph(
                     #"""
-                    Presentation happens after domain meaning exists.
+                    Presentation and projection consume domain meaning that already exists. They may select, organize, format, or translate that meaning for an outward consumer without becoming the place where the underlying domain decision is made.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    Conceptually:
-                    """#
-                )
+                example("Project semantic values outward") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        Result + Events + maybe Plan / Preflight
+                                         ↓
+                                      Adapter
+                                         ↓
+                                     Presenter
+                        """#
+                    )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    Result + Events + maybe Plan/Preflight
-                                     ↓
-                                  Adapter
-                                     ↓
-                                 Presenter
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    A presenter or adapter should project domain information outward.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    It should not generally redo domain decisions.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Examples:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    BuildResult
-                        -> terminal summary
-                    
-                    BuildEvent
-                        -> progress line
-                    
-                    BuildResult
-                        -> JSON response
-                    
-                    BuildResult
-                        -> web response DTO
-                    
-                    BuildResult
-                        -> Agentic tool output
-                    
-                    BuildResult
-                        -> GUI view model
-                    """#
-                )
+                    list(
+                        style: .unordered,
+                        items: [
+                            "BuildResult → terminal summary",
+                            "BuildEvent → progress line",
+                            "BuildResult → JSON response",
+                            "BuildResult → web response DTO",
+                            "BuildResult → Agentic tool output",
+                            "BuildResult → GUI view model",
+                        ]
+                    )
+                }
             }
 
         case .delay_irreversible_projection:
             .init(
                 title: "Delay irreversible projection",
                 summary: #"""
-                Preserve reusable structured information until a real consumer requires
-                a narrower representation-specific projection.
+                Preserve reusable structured information until a real consumer requires a
+                narrower representation-specific projection.
                 """#
             ) {
                 paragraph(
                     #"""
-                    Prefer retaining reusable structured information until the point where a particular consumer requires a narrower representation.
+                    Keep reusable structured information until an actual boundary requires a narrower representation. Do not make the first presenter convenient by irreversibly discarding meaning that several consumers could have shared.
                     """#
                 )
+
+                example("Preserve reusable structure before final lowering") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        Difference
+                            ↓
+                        DifferenceLayout
+                            ├── terminal renderer
+                            ├── plain renderer
+                            └── other consumers
+                        """#
+                    )
+
+                    code(
+                        language: "text",
+                        content: #"""
+                        // Narrower too early when richer meaning is reusable.
+                        Difference
+                            ↓
+                        terminal String
+                        """#
+                    )
+                }
 
                 paragraph(
                     #"""
-                    For example:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    Difference
-                        ↓
-                    DifferenceLayout
-                        ├── terminal renderer
-                        ├── plain renderer
-                        └── other consumers
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    can preserve more architectural flexibility than:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    Difference
-                        ↓
-                    terminal String
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The important distinction is not whether an intermediate type is called a result, layout, projection, report, or model.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The important distinction is whether it preserves or adds reusable meaning before the final representation-specific lowering step.
+                    The name of the intermediate representation is secondary. It may be a result, layout, projection, report, or model; what matters is whether it preserves or adds reusable meaning before the final representation-specific lowering step.
                     """#
                 )
             }
@@ -158,45 +105,33 @@ public enum PresentationAndAdaptationGuideline:
             ) {
                 paragraph(
                     #"""
-                    Sometimes the domain result is not itself the ideal direct input for every renderer.
+                    The domain result is not always the ideal direct input for every renderer. A shared projection can legitimately reorganize or enrich domain information for several real consumers.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    A shared projection may enrich or reorganize domain information for several later consumers:
-                    """#
-                )
+                example("Share one enriched projection across real consumers") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        DomainResult
+                            ↓
+                        SharedProjection
+                            ├── Terminal
+                            ├── HTML
+                            ├── GUI
+                            └── Agentic
+                        """#
+                    )
+                }
 
-                code(
-                    language: "text",
-                    content: #"""
-                    DomainResult
-                        ↓
-                    SharedProjection
-                        ├── Terminal
-                        ├── HTML
-                        ├── GUI
-                        └── Agentic
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    That is a legitimate intermediate boundary when the projection has shared semantic utility.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Do not introduce such a layer merely in anticipation of hypothetical consumers.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    It earns its place through real reuse, enrichment, readability, or boundary value.
-                    """#
+                list(
+                    style: .unordered,
+                    items: [
+                        "Introduce the projection when several consumers genuinely share its enriched structure.",
+                        "Keep it when it materially improves readability or creates a useful stable boundary.",
+                        "Do not add the layer only because hypothetical future consumers can be imagined.",
+                        "Collapse it when it has one trivial consumer and no independent semantic value.",
+                    ]
                 )
             }
 
@@ -210,47 +145,49 @@ public enum PresentationAndAdaptationGuideline:
             ) {
                 paragraph(
                     #"""
-                    A domain type may expose useful stable representations such as:
+                    A domain type may expose stable representations that belong to the domain without thereby becoming coupled to a particular UI.
                     """#
                 )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    relative path
-                    display label
-                    canonical description
-                    structured summary
-                    """#
-                )
+                example("Distinguish domain-owned representation from consumer policy") {
+                    paragraph(
+                        #"""
+                        Domain-owned representation may include:
+                        """#
+                    )
 
-                paragraph(
+                    list(
+                        style: .unordered,
+                        items: [
+                            "relative path",
+                            "display label",
+                            "canonical description",
+                            "structured summary",
+                        ]
+                    )
+
+                    paragraph(
+                        #"""
+                        Consumer-specific presentation may include:
+                        """#
+                    )
+
+                    list(
+                        style: .unordered,
+                        items: [
+                            "ANSI color",
+                            "terminal width",
+                            "GUI row state",
+                            "HTTP status formatting",
+                            "localized interface prose",
+                            "Agentic result envelopes",
+                        ]
+                    )
+                }
+
+                quote(
                     #"""
-                    without necessarily becoming coupled to a particular UI.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The stronger warning applies to representation policy tied to a specific consumer:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    ANSI color
-                    terminal width
-                    GUI row state
-                    HTTP status formatting
-                    localized interface prose
-                    Agentic result envelopes
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The question is whether the representation belongs to the domain or to a particular outward vehicle.
+                    Ask whether the representation belongs to the domain or to the outward vehicle that happens to display it.
                     """#
                 )
             }
@@ -259,65 +196,66 @@ public enum PresentationAndAdaptationGuideline:
             .init(
                 title: "Presentation is replaceable",
                 summary: #"""
-                A new CLI, GUI, web, Agentic, JSON, or TUI surface should usually
-                require a new adapter or presenter rather than a new inner execution
-                model.
+                A new CLI, GUI, web, Agentic, JSON, or TUI surface should usually require
+                a new adapter or presenter rather than a new inner execution model.
                 """#
             ) {
                 paragraph(
                     #"""
-                    A healthy domain operation can gain a new presentation surface without changing its actual execution model.
+                    A healthy domain operation can gain a new presentation surface without changing the operation's semantic execution model.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    Adding:
-                    """#
-                )
+                example("Add consumers outward") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        domain operation
+                            ├── CLI
+                            ├── GUI
+                            ├── web API
+                            ├── Agentic
+                            ├── JSON
+                            └── TUI
+                        """#
+                    )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    CLI
-                    GUI
-                    web API
-                    Agentic
-                    JSON
-                    TUI
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    should usually mean adding an adapter or presenter, not teaching the inner operation about the new consumer.
-                    """#
-                )
+                    paragraph(
+                        #"""
+                        Adding one of these surfaces should usually mean adding or adapting an outward projection, not teaching the inner operation about a new consumer.
+                        """#
+                    )
+                }
             }
 
         case .presenters_consume_decisions:
             .init(
                 title: "Presenters consume decisions; they do not make them",
                 summary: #"""
-                Let presenters choose what and how to show, but keep authoritative
-                domain decisions inward of presentation.
+                Let presenters choose what and how to show, but keep authoritative domain
+                decisions inward of presentation.
                 """#
             ) {
                 paragraph(
                     #"""
-                    A presenter may select what information to show and how to format it.
+                    A presenter may decide which available information to show and how to format it. It should not silently reinterpret authoritative domain decisions.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    It should not silently reinterpret which files should be changed, which target should be built, whether a domain operation succeeded, or what the authoritative result was.
-                    """#
+                list(
+                    style: .unordered,
+                    items: [
+                        "which files should be changed",
+                        "which target should be built",
+                        "whether the domain operation fulfilled its contract",
+                        "what the authoritative result was",
+                        "which semantic outcome occurred",
+                    ]
                 )
 
-                paragraph(
+                quote(
                     #"""
-                    Those decisions belong inward of presentation.
+                    Presentation may choose a view of the decision; it should not become the authority that makes the decision.
                     """#
                 )
             }

@@ -1,9 +1,4 @@
-public enum ResolutionGuideline:
-    String,
-    Sendable,
-    Hashable,
-    CaseIterable
-{
+public enum ResolutionGuideline: String, Sendable, Hashable, CaseIterable {
     case environment_dependent_intent
     case resolve_once
     case resolved_type_earned
@@ -23,87 +18,48 @@ public enum ResolutionGuideline:
             ) {
                 paragraph(
                     #"""
-                    Resolution turns requested intent into concrete meaning in the current environment.
+                    Resolution turns already meaningful intent into concrete meaning in the environment where the operation will proceed. The caller may know what it wants without yet knowing the exact path, identifier, target, configuration, or other environment-specific value that represents that intent.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    Input may contain values such as:
-                    """#
+                list(
+                    style: .unordered,
+                    items: [
+                        "branch or revision names such as `master`",
+                        "paths such as `~/foo`",
+                        "target names",
+                        "configuration aliases",
+                        "environment names",
+                        "globs and date ranges",
+                        "account aliases",
+                        "sync routes and similar environment-dependent selections",
+                    ]
                 )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    "master"
-                    "~/foo"
-                    target name
-                    configuration alias
-                    environment
-                    glob
-                    date range
-                    account alias
-                    sync route
-                    """#
-                )
+                example("Turn requested build intent into resolved build meaning") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        BuildRequest
+                            target: "server-package"
+                            configuration: release
 
-                paragraph(
-                    #"""
-                    These are meaningful requests, but they may still require interpretation.
-                    """#
-                )
+                                ↓ resolution
 
-                paragraph(
-                    #"""
-                    Conceptually:
-                    """#
-                )
+                        ResolvedBuildRequest
+                            packageRoot: /actual/path
+                            target: server-package
+                            configuration: release
+                            executableDestination: /actual/sbm-bin/...
+                        """#
+                    )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    Input
-                        requested intent
-                    
-                            ↓ resolution
-                    
-                    Resolved meaning
-                        intent interpreted against the current environment
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    For example:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    BuildRequest
-                        target: "server-package"
-                        configuration: release
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    may resolve to:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    ResolvedBuildRequest
-                        packageRoot: /actual/path
-                        target: server-package
-                        configuration: release
-                        executableDestination: /actual/sbm-bin/...
-                    """#
-                )
+                    paragraph(
+                        #"""
+                        The request already contains domain intent. Resolution interprets that intent against current state so later stages can depend on concrete meaning rather than repeatedly rediscovering it.
+                        """#
+                    )
+                }
             }
 
         case .resolve_once:
@@ -117,37 +73,41 @@ public enum ResolutionGuideline:
             ) {
                 paragraph(
                     #"""
-                    Execution should not continuously reinterpret caller intent.
+                    Once environment-dependent intent has been resolved, later stages should generally consume the resolved meaning rather than independently interpreting the caller's original request again.
                     """#
+                )
+
+                example("Make resolution a visible boundary") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        requested intent
+                            ↓
+                        resolution
+                            ↓
+                        resolved meaning
+                            ├── planning
+                            ├── approval
+                            ├── execution
+                            └── result construction
+                        """#
+                    )
+                }
+
+                list(
+                    style: .unordered,
+                    items: [
+                        "Improve determinism by preventing later stages from observing different interpretations of the same request.",
+                        "Improve inspectability by making the interpreted value explicit before effects occur.",
+                        "Improve testability by allowing later behavior to be exercised against known resolved inputs.",
+                        "Improve planning and approval by letting those stages reason about the same concrete targets execution will use.",
+                        "Improve reuse by keeping environmental interpretation separate from operations that only require resolved values.",
+                    ]
                 )
 
                 paragraph(
                     #"""
-                    If a path, alias, target, account, environment, or configuration has already been resolved, later stages should generally operate on that concrete meaning rather than independently resolving it again.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    This improves:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    determinism
-                    inspectability
-                    testability
-                    planning
-                    approval
-                    reuse
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    It also makes environmental interpretation a visible boundary rather than an incidental side effect scattered through execution.
+                    Re-resolution may still be intentional when the domain specifically requires fresh environmental state. The default is simply not to make reinterpretation an incidental behavior scattered throughout later execution.
                     """#
                 )
             }
@@ -163,95 +123,56 @@ public enum ResolutionGuideline:
             ) {
                 paragraph(
                     #"""
-                    The resolution role can exist without introducing a dedicated carrier type.
+                    Resolution is a semantic role, not a requirement that every resolver manufacture a dedicated carrier type. A tiny local resolved value may already have an adequate representation.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    For example, a small resolver may return:
-                    """#
+                example("Keep a tiny local result simple") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        (code: String, id: Int)
+
+                        URL
+                        """#
+                    )
+
+                    paragraph(
+                        #"""
+                        These can be sufficient when the result is small, local, and has one obvious consumer.
+                        """#
+                    )
+                }
+
+                list(
+                    style: .unordered,
+                    items: [
+                        "Introduce a named resolved type when the value is significant to the domain.",
+                        "Prefer a named type when the value travels through several later stages or has several consumers.",
+                        "Prefer a named type when the value needs dedicated behavior or carries invariants.",
+                        "Prefer a named type when the value is stored or transported.",
+                        "Prefer a named type when tuples or primitive signatures become difficult to read or maintain.",
+                        "Prefer a named type when it materially improves cohesion by naming a meaningful unit.",
+                    ]
                 )
 
-                code(
-                    language: "swift",
-                    content: #"""
-                    (code: String, id: Int)
-                    """#
-                )
+                example("Name a resolved value that has become a domain unit") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        struct ResolvedAutoCloseTargets {
+                            let netIncome: Target
+                            let equity: Target
+                        }
+                        """#
+                    )
 
-                paragraph(
-                    #"""
-                    or:
-                    """#
-                )
-
-                code(
-                    language: "swift",
-                    content: #"""
-                    URL
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    when the result is tiny, local, and has one obvious consumer.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    A named resolved type becomes more useful when the result:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    is significant to the domain
-                    is passed through several later stages
-                    has several consumers
-                    needs dedicated behavior
-                    carries invariants
-                    is stored or transported
-                    would otherwise produce difficult tuple signatures
-                    substantially improves readability or cohesion
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    For example:
-                    """#
-                )
-
-                code(
-                    language: "swift",
-                    content: #"""
-                    struct ResolvedAutoCloseTargets {
-                        let netIncome: Target
-                        let equity: Target
-                    }
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    may be preferable when the pair is a meaningful unit in later accounting logic.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The purpose of the type is not to prove that resolution occurred.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The purpose is to give a meaningful resolved value an appropriate representation.
-                    """#
-                )
+                    paragraph(
+                        #"""
+                        The type earns its existence when the pair is meaningful in later accounting logic. Its purpose is to represent that meaningful unit, not merely to prove that a resolution step occurred.
+                        """#
+                    )
+                }
             }
 
         case .local_tuples:
@@ -265,42 +186,30 @@ public enum ResolutionGuideline:
             ) {
                 paragraph(
                     #"""
-                    A tuple is not architecturally inferior merely because a named type could exist.
+                    A tuple is not architecturally inferior merely because a named type could exist. For a small local operation, a tuple can communicate the complete resolved value without adding another declaration.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    For a small local operation with a limited consumer:
-                    """#
-                )
-
-                code(
-                    language: "swift",
-                    content: #"""
-                    (
-                        ni: (code: String, id: Int),
-                        equity: (code: String, id: Int)
+                example("Keep a small paired result local") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        (
+                            ni: (code: String, id: Int),
+                            equity: (code: String, id: Int)
+                        )
+                        """#
                     )
-                    """#
-                )
+                }
 
-                paragraph(
-                    #"""
-                    may be sufficient.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    Prefer a type when the tuple begins to travel, repeat, grow, or acquire independent meaning.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    This is partly a readability and cohesion decision rather than a mechanical architecture rule.
-                    """#
+                list(
+                    style: .unordered,
+                    items: [
+                        "Keep a tuple when its meaning is obvious from a small local scope and it has limited consumers.",
+                        "Introduce a named type when the value begins to travel across stages or API boundaries.",
+                        "Introduce a named type when the structure repeats, grows, gains behavior, carries invariants, or develops independent identity.",
+                        "Treat the choice as a readability and cohesion decision rather than a mechanical preference for named types.",
+                    ]
                 )
             }
 
@@ -314,19 +223,30 @@ public enum ResolutionGuideline:
             ) {
                 paragraph(
                     #"""
-                    Parsing asks whether an external or loose representation can become a stronger domain value.
+                    Parsing and resolution may both occur before execution, but they answer different questions. Parsing strengthens representation; resolution interprets meaningful intent against current environmental state.
                     """#
                 )
 
-                paragraph(
-                    #"""
-                    Resolution interprets an already meaningful request against environment-dependent state.
-                    """#
-                )
+                example("Distinguish representation from environmental interpretation") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        parsing
+                            loose external representation
+                                ↓
+                            stronger domain value
+
+                        resolution
+                            meaningful requested intent
+                                ↓
+                            concrete meaning in the current environment
+                        """#
+                    )
+                }
 
                 paragraph(
                     #"""
-                    They may happen together in simple cases, but they should not be conceptually confused merely because both occur before execution.
+                    A simple operation may perform both concerns close together, but proximity does not make them the same semantic role.
                     """#
                 )
             }

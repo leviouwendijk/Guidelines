@@ -1,9 +1,4 @@
-public enum CachingGuideline:
-    String,
-    Sendable,
-    Hashable,
-    CaseIterable
-{
+public enum CachingGuideline: String, Sendable, Hashable, CaseIterable {
     case beneath_execution
     case observable
     case semantic_equivalence
@@ -15,46 +10,36 @@ public enum CachingGuideline:
             .init(
                 title: "Keep caching beneath domain execution and resolution",
                 summary: #"""
-                Use caching as an implementation mechanism beneath resolution or
-                execution rather than making presentation responsible for avoiding work.
+                Use caching as an implementation mechanism beneath resolution or execution
+                rather than making presentation responsible for avoiding work.
                 """#
             ) {
                 paragraph(
                     #"""
-                    Caching belongs beneath domain execution and resolution, not inside presentation.
+                    Caching is primarily a mechanism for avoiding unnecessary work. Keep it beneath the domain operation or its resolution path rather than making a presenter decide whether the work should occur.
                     """#
                 )
+
+                example("Place cache decisions inside the semantic operation") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        Input
+                            ↓
+                        Resolution
+                            ↓
+                        fingerprints / cache lookup
+                            ↓
+                        Plan
+                            ↓
+                        Execution
+                        """#
+                    )
+                }
 
                 paragraph(
                     #"""
-                    Conceptually:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    Input
-                        ↓
-                    Resolution
-                        ↓
-                    fingerprints / cache lookup
-                        ↓
-                    Plan
-                        ↓
-                    Execution
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    A cache is primarily an implementation mechanism for avoiding unnecessary work.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    It should not normally change the semantic contract of the operation.
+                    The exact placement may vary with the domain, but cache mechanics should not normally redefine the operation's semantic contract.
                     """#
                 )
             }
@@ -63,79 +48,65 @@ public enum CachingGuideline:
             .init(
                 title: "Cache observation",
                 summary: #"""
-                Expose useful cache activity through domain events or aggregate result
-                facts without leaking the internal cache representation.
+                Expose useful cache activity through domain events or aggregate result facts
+                without leaking the internal cache representation.
                 """#
             ) {
                 paragraph(
                     #"""
-                    Cache activity may produce events:
+                    Cache behavior may be worth observing when it helps callers understand performance or work performed. Expose that information semantically without requiring consumers to know the cache's storage representation.
                     """#
                 )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    .cacheHit(path)
-                    .cacheMiss(path)
-                    .recomputed(path)
-                    """#
-                )
+                example("Expose temporal cache activity as events") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        .cacheHit(path)
+                        .cacheMiss(path)
+                        .recomputed(path)
+                        """#
+                    )
+                }
 
-                paragraph(
-                    #"""
-                    The final result may expose useful aggregate facts:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    cacheHits: 137
-                    recomputed: 3
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    when those facts are useful to consumers.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The caller should not need to understand the internal cache representation.
-                    """#
-                )
+                example("Expose useful aggregate facts in the result") {
+                    code(
+                        language: "text",
+                        content: #"""
+                        cacheHits: 137
+                        recomputed: 3
+                        """#
+                    )
+                }
             }
 
         case .semantic_equivalence:
             .init(
                 title: "Cache behavior should preserve semantics",
                 summary: #"""
-                Warm and cold execution should produce equivalent domain semantics
-                unless cache state is intentionally part of the domain contract.
+                Warm and cold execution should produce equivalent domain semantics unless
+                cache state is intentionally part of the domain contract.
                 """#
             ) {
                 paragraph(
                     #"""
-                    A warm execution and a cold execution should produce equivalent domain results unless the cache is itself intentionally part of the domain.
+                    A warm execution and a cold execution should generally produce equivalent domain meaning. Caching should improve computational footprint without incidentally changing the operation the caller asked for.
                     """#
+                )
+
+                list(
+                    style: .unordered,
+                    items: [
+                        "behavior",
+                        "configuration surface",
+                        "output semantics",
+                        "presentation contracts",
+                    ]
                 )
 
                 paragraph(
                     #"""
-                    Caching should improve computational footprint without unnecessarily changing:
-                    """#
-                )
-
-                code(
-                    language: "text",
-                    content: #"""
-                    behavior
-                    configuration surface
-                    output semantics
-                    presentation contracts
+                    If cache state is intentionally part of the domain contract, model that distinction explicitly rather than allowing it to leak accidentally from an implementation optimization.
                     """#
                 )
             }
@@ -150,13 +121,7 @@ public enum CachingGuideline:
             ) {
                 paragraph(
                     #"""
-                    A terminal renderer, GUI, or Agentic adapter may choose to expose cache information.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The cache mechanism itself should not depend on any of those presentation layers.
+                    A terminal renderer, GUI, Agentic adapter, logger, or other consumer may choose to expose cache information. The cache mechanism itself should remain independent of those presentation decisions.
                     """#
                 )
             }

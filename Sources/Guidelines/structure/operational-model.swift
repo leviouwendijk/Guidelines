@@ -1,9 +1,4 @@
-public enum OperationalModelGuideline:
-    String,
-    Sendable,
-    Hashable,
-    CaseIterable
-{
+public enum OperationalModelGuideline: String, Sendable, Hashable, CaseIterable {
     case collapsed_forms
     case role_does_not_require_type
 
@@ -18,48 +13,44 @@ public enum OperationalModelGuideline:
                 mutating, or externally presented operation.
                 """#
             ) {
-                section("Tiny pure operation") {
-                    paragraph(
-                        #"""
-                        Often the cleanest architecture is simply:
-                        """#
-                    )
+                paragraph(
+                    #"""
+                    Operational roles are a vocabulary for recognizing meaningful boundaries, not a pipeline every operation must instantiate. Choose the smallest shape that still preserves the distinctions the operation actually needs.
+                    """#
+                )
 
+                section("Tiny pure operation") {
                     code(
                         language: "text",
                         content: #"""
-                        values -> value
+                        values → value
                         """#
                     )
 
-                    paragraph(
-                        #"""
-                        For example:
-                        """#
-                    )
-
-                    code(
-                        language: "swift",
-                        content: #"""
-                        Compare.Number.Decimal.exceeds(
-                            difference,
-                            tolerance: tolerance
+                    example("Direct values may already express the whole operation") {
+                        code(
+                            language: "swift",
+                            content: #"""
+                            Compare.Number.Decimal.exceeds(
+                                difference,
+                                tolerance: tolerance
+                            )
+                            """#
                         )
-                        """#
-                    )
 
-                    paragraph(
-                        #"""
-                        There is no requirement to manufacture an input or result type around a small operation when the arguments and return value already express its meaning clearly.
-                        """#
-                    )
+                        paragraph(
+                            #"""
+                            Do not manufacture input, result, planning, or execution carriers around a tiny operation when its arguments and return value already express the complete meaning clearly.
+                            """#
+                        )
+                    }
                 }
 
                 section("Small structured operation") {
                     code(
                         language: "text",
                         content: #"""
-                        Input -> Result
+                        Input → Result
                         """#
                     )
 
@@ -70,23 +61,17 @@ public enum OperationalModelGuideline:
                     )
                 }
 
-                section("Read/query operation") {
+                section("Read or query operation") {
                     code(
                         language: "text",
                         content: #"""
-                        Input -> Resolution -> Result
+                        Input → Resolution → Result
                         """#
                     )
 
                     paragraph(
                         #"""
-                        Resolution does not require a ResolvedInput type when the resolved value is tiny and local.
-                        """#
-                    )
-
-                    paragraph(
-                        #"""
-                        It may instead be an internal stage.
+                        Resolution may be an internal stage. It does not require a dedicated `ResolvedInput` type when the resolved value is tiny and local.
                         """#
                     )
                 }
@@ -95,7 +80,7 @@ public enum OperationalModelGuideline:
                     code(
                         language: "text",
                         content: #"""
-                        Input -> Execution -> Events + Result
+                        Input → Execution → Events + Result
                         """#
                     )
 
@@ -111,16 +96,16 @@ public enum OperationalModelGuideline:
                         language: "text",
                         content: #"""
                         Input
-                            -> Plan
-                            -> Preflight
-                            -> Execution
-                            -> Events + Result
+                            → Plan
+                            → Preflight
+                            → Execution
+                            → Events + Result
                         """#
                     )
 
                     paragraph(
                         #"""
-                        Planning and preflight become useful when inspection, approval, reproducibility, safety, or determinism justify them.
+                        Planning and preflight become useful when inspection, approval, reproducibility, safety, or determinism justify independently representing those roles.
                         """#
                     )
                 }
@@ -130,23 +115,29 @@ public enum OperationalModelGuideline:
                         language: "text",
                         content: #"""
                         Input
-                            -> Resolution
-                            -> Plan
-                            -> Preflight
-                            -> Execution
-                            -> Events
-                            -> Result + Artifacts
-                            -> Projection
-                            -> Presenter
+                            → Resolution
+                            → Plan
+                            → Preflight
+                            → Execution
+                            → Events
+                            → Result + Artifacts
+                            → Projection
+                            → Presenter
                         """#
                     )
 
                     paragraph(
                         #"""
-                        Intermediate projections may be useful when several consumers need a shared enriched representation before final output.
+                        Intermediate projections may be useful when several real consumers need a shared enriched representation before final output.
                         """#
                     )
                 }
+
+                quote(
+                    #"""
+                    Add a role when it preserves meaningful separation; collapse it when it adds only ceremony.
+                    """#
+                )
             }
 
         case .role_does_not_require_type:
@@ -160,38 +151,32 @@ public enum OperationalModelGuideline:
             ) {
                 paragraph(
                     #"""
-                    The conceptual existence of a stage is weaker than the need for a dedicated carrier type.
+                    The conceptual existence of a stage is weaker than the need for a dedicated carrier type. A type earns its place when the represented value becomes meaningfully useful beyond one short-lived local step.
                     """#
+                )
+
+                list(
+                    style: .unordered,
+                    items: [
+                        "The value has independent semantic identity.",
+                        "The value is consumed in several places.",
+                        "The value travels across meaningful boundaries or stages.",
+                        "The value is persisted or transported.",
+                        "The value carries invariants.",
+                        "The value needs dedicated behavior.",
+                        "The type substantially improves readability or cohesion.",
+                    ]
                 )
 
                 paragraph(
                     #"""
-                    A type is more justified when its value:
+                    A tuple, primitive, existing domain type, or local value may remain preferable for a tiny stage with one obvious consumer.
                     """#
                 )
 
-                code(
-                    language: "text",
-                    content: #"""
-                    has independent semantic identity
-                    is consumed in several places
-                    is passed across layers
-                    is persisted or transported
-                    carries invariants
-                    needs dedicated behavior
-                    substantially improves readability
-                    """#
-                )
-
-                paragraph(
+                quote(
                     #"""
-                    A tuple, primitive, or local value may remain preferable for a tiny short-lived stage with one obvious consumer.
-                    """#
-                )
-
-                paragraph(
-                    #"""
-                    The architecture is a vocabulary for separation, not a checklist requiring seven structs.
+                    The architecture is a vocabulary for separation, not a checklist requiring one struct for every named role.
                     """#
                 )
             }
