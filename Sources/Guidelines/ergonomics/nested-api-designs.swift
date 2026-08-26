@@ -1,4 +1,4 @@
-public enum NestedAPIDesignGuideline:
+enum NestedAPIDesignGuideline:
     String,
     Sendable,
     Hashable,
@@ -7,7 +7,7 @@ public enum NestedAPIDesignGuideline:
     case wrapper_domain_operations
     case wrapper_accessors
 
-    public var content: GuidelineContent {
+    var content: GuidelineContent {
         switch self {
         case .wrapper_domain_operations:
             .init(

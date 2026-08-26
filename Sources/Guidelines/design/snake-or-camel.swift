@@ -1,4 +1,4 @@
-public enum SnakeOrCamelGuideline:
+enum SnakeOrCamelGuideline:
     String,
     Sendable,
     Hashable,
@@ -6,7 +6,7 @@ public enum SnakeOrCamelGuideline:
 {
     case contextual_style
 
-    public var content: GuidelineContent {
+    var content: GuidelineContent {
         switch self {
         case .contextual_style:
             .init(

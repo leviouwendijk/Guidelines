@@ -1,4 +1,4 @@
-public enum IdentifierGuideline:
+enum IdentifierGuideline:
     String,
     Sendable,
     Hashable,
@@ -6,7 +6,7 @@ public enum IdentifierGuideline:
 {
     case descriptive_names
 
-    public var content: GuidelineContent {
+    var content: GuidelineContent {
         switch self {
         case .descriptive_names:
             .init(

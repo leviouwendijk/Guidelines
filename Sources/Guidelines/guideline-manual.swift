@@ -3,28 +3,28 @@ public enum GuidelineManual {
         [
             .init(
                 area: .design,
-                key: "casing",
-                title: "Casing",
-                guidelines: CasingGuideline.allCases.map {
-                    .casing($0)
+                key: "source_conventions",
+                title: "Source Conventions",
+                guidelines: SourceConventionGuideline.allCases.map {
+                    .source_conventions($0)
                 }
             ),
 
             .init(
                 area: .design,
-                key: "identifiers",
-                title: "Identifiers",
-                guidelines: IdentifierGuideline.allCases.map {
-                    .identifiers($0)
+                key: "symbol_design",
+                title: "Symbol Design",
+                guidelines: SymbolDesignGuideline.allCases.map {
+                    .symbol_design($0)
                 }
             ),
 
             .init(
                 area: .design,
-                key: "snake_or_camel",
-                title: "On snake or camel",
-                guidelines: SnakeOrCamelGuideline.allCases.map {
-                    .snake_or_camel($0)
+                key: "casing_conventions",
+                title: "Casing Conventions",
+                guidelines: CasingConventionGuideline.allCases.map {
+                    .casing_conventions($0)
                 }
             ),
 
@@ -39,10 +39,10 @@ public enum GuidelineManual {
 
             .init(
                 area: .ergonomics,
-                key: "nested_api_designs",
-                title: "Nested API Designs",
-                guidelines: NestedAPIDesignGuideline.allCases.map {
-                    .nested_api_designs($0)
+                key: "nested_apis",
+                title: "Nested APIs",
+                guidelines: NestedAPIGuideline.allCases.map {
+                    .nested_apis($0)
                 }
             ),
 

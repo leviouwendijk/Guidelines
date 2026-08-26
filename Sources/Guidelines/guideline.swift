@@ -3,24 +3,24 @@ public enum Guideline:
     Hashable,
     GuidelineReferencing
 {
-    case casing(
-        CasingGuideline
+    case source_conventions(
+        SourceConventionGuideline
     )
 
-    case identifiers(
-        IdentifierGuideline
+    case symbol_design(
+        SymbolDesignGuideline
     )
 
-    case snake_or_camel(
-        SnakeOrCamelGuideline
+    case casing_conventions(
+        CasingConventionGuideline
     )
 
     case dsl_design(
         DSLDesignGuideline
     )
 
-    case nested_api_designs(
-        NestedAPIDesignGuideline
+    case nested_apis(
+        NestedAPIGuideline
     )
 
     case option_clustering(
@@ -113,19 +113,19 @@ public enum Guideline:
 
     public var content: GuidelineContent {
         switch self {
-        case .casing(let guideline):
+        case .source_conventions(let guideline):
             guideline.content
 
-        case .identifiers(let guideline):
+        case .symbol_design(let guideline):
             guideline.content
 
-        case .snake_or_camel(let guideline):
+        case .casing_conventions(let guideline):
             guideline.content
 
         case .dsl_design(let guideline):
             guideline.content
 
-        case .nested_api_designs(let guideline):
+        case .nested_apis(let guideline):
             guideline.content
 
         case .option_clustering(let guideline):
@@ -210,19 +210,19 @@ public enum Guideline:
 
     public var area: GuidelineArea {
         switch self {
-        case .casing:
+        case .source_conventions:
             .design
 
-        case .identifiers:
+        case .symbol_design:
             .design
 
-        case .snake_or_camel:
+        case .casing_conventions:
             .design
 
         case .dsl_design:
             .ergonomics
 
-        case .nested_api_designs:
+        case .nested_apis:
             .ergonomics
 
         case .option_clustering:
@@ -295,20 +295,20 @@ public enum Guideline:
 
     public var reference: String {
         switch self {
-        case .casing(let guideline):
-            "design.casing.\(guideline.rawValue)"
+        case .source_conventions(let guideline):
+            "design.source_conventions.\(guideline.rawValue)"
 
-        case .identifiers(let guideline):
-            "design.identifiers.\(guideline.rawValue)"
+        case .symbol_design(let guideline):
+            "design.symbol_design.\(guideline.rawValue)"
 
-        case .snake_or_camel(let guideline):
-            "design.snake_or_camel.\(guideline.rawValue)"
+        case .casing_conventions(let guideline):
+            "design.casing_conventions.\(guideline.rawValue)"
 
         case .dsl_design(let guideline):
             "ergonomics.dsl_design.\(guideline.rawValue)"
 
-        case .nested_api_designs(let guideline):
-            "ergonomics.nested_api_designs.\(guideline.rawValue)"
+        case .nested_apis(let guideline):
+            "ergonomics.nested_apis.\(guideline.rawValue)"
 
         case .option_clustering(let guideline):
             "ergonomics.option_clustering.\(guideline.rawValue)"

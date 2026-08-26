@@ -1,4 +1,4 @@
-public enum CasingGuideline:
+enum CasingGuideline:
     String,
     Sendable,
     Hashable,
@@ -10,7 +10,7 @@ public enum CasingGuideline:
     case nest_repeated_context
     case io_facing_casing
 
-    public var content: GuidelineContent {
+    var content: GuidelineContent {
         switch self {
         case .no_emoji:
             .init(
