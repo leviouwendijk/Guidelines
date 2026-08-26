@@ -22,6 +22,7 @@ public enum MutationExecutionWorkflowGuideline:
     case final_state_handoff
     case context_refresh
     case agentic_capability_manifest
+    case agentic_tool_plans
     case guidelines_publish_refresh
 
     public var content: GuidelineContent {
@@ -604,6 +605,32 @@ public enum MutationExecutionWorkflowGuideline:
                         "Before constructing calls for `agentic host bridge`, refresh or read the live capability manifest for the exact target workspace. Do not carry a manifest from another workspace forward merely because the same Agentic binary may expose a similar tool set.",
                         "Treat `agentic host bridge` as an I/O transport around the normal governed host invocation path, not as a second tool registry or execution authority. It must preserve the same workspace authorization, preflight, risk, approval, and runtime policy boundaries, and the returned host envelope is authoritative execution state.",
                         "When no Agentic capability manifest is supplied, do not assume a particular Agentic host or tool inventory is available merely because it existed in another session.",
+                    ]
+                )
+            }
+
+        case .agentic_tool_plans:
+            .init(
+                title: "Use Agentic tool plans for dependent typed workflows",
+                summary: #"""
+                When several typed Agentic operations form one dependency graph,
+                express that dependency explicitly with an AgentToolPlan instead
+                of manually advancing independent calls from stale assumptions.
+                """#
+            ) {
+                list(
+                    style: .unordered,
+                    items: [
+                        "Prefer an AgentToolPlan when multiple available typed Agentic calls have real execution dependencies. Keep AgentToolCall as the atomic leaf; orchestration belongs above calls rather than inside the call contract.",
+                        "Use sequence nodes for ordered dependencies where a later call is eligible only after the previous stage succeeds. Use batch nodes only for genuinely independent siblings; do not encode a dependency-sensitive publication workflow as a batch merely because several calls are known in advance.",
+                        "Put verification before publication. A normal mutation-and-publication chain should read as mutation -> build or targeted proof -> git_prepare_commit -> git_commit_prepared -> git_push, with each downstream publication step unreachable after a failed, denied, or otherwise non-successful prerequisite.",
+                        "Do not preflight future mutating or state-sensitive leaves eagerly when earlier leaves may change repository or workspace state. Preflight each leaf when it becomes eligible so its review is based on current authoritative state.",
+                        "A plan is orchestration, not blanket approval. Every reachable leaf must continue through its declared schema, workspace authorization, preflight, risk classification, policy decision, approval boundary, invocation, and receipt independently.",
+                        "Use outcome-driven branches such as success, failure, and denial for deterministic continuation. Prefer semantic outcomes over arbitrary inspection of undocumented output JSON; add richer output-dependent conditions only through an explicit typed contract.",
+                        "Treat AgentToolPlanResult records and tool-owned receipts as authoritative execution history for the plan. Record failed and skipped leaves explicitly rather than reasoning as though unexecuted dependent stages occurred.",
+                        "When the host bridge accepts a bare AgentToolCall, a non-empty AgentToolCall array, or an AgentToolPlan, use the bare call for one atomic invocation, the array for independent sibling work, and an explicit plan for dependency-sensitive sequence or recursive branching.",
+                        "Do not model Agentic orchestration with hidden process-global cwd mutation. Work inside a subdirectory of one authorized workspace should eventually be represented as explicit working-directory execution scope; moving to another repository changes the workspace authority boundary and must be represented as an explicit authorized workspace transition rather than a shell-style cd escape.",
+                        "Cross-repository workflows should therefore preserve explicit scope at each stage: finish and publish work in one authorized repository, transition only to another authorized repository root, synchronize it through typed operations such as git_pull, verify its resulting state, and only then continue dependent work there.",
                     ]
                 )
             }
