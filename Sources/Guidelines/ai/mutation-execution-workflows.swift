@@ -22,6 +22,7 @@ public enum MutationExecutionWorkflowGuideline:
     case final_state_handoff
     case context_refresh
     case agentic_capability_manifest
+    case agentic_tool_pass
     case agentic_tool_plans
     case guidelines_publish_refresh
 
@@ -42,9 +43,10 @@ public enum MutationExecutionWorkflowGuideline:
                         "ZMP - Zsh Mutation Pass: a pasteable, session-safe zsh mutation and proof pass for one coherent domain, enclosed as an outer subshell by default.",
                         "BMP - Bash Mutation Pass: the bash twin of ZMP, with the same mutation, proof, replay-safety, and default outer-subshell requirements.",
                         "SDP - Staged Domain Pass: split a larger dependency graph into separately provable stages so downstream work cannot advance prematurely.",
+                        "ATP - Agentic Tool Pass: a manifest-grounded governed Agentic execution pass using one AgentToolCall for an atomic operation, an AgentToolCall array for independent siblings, or an AgentToolPlan for dependency-gated, recursive, or outcome-branched execution.",
                         "GPR - Guidelines Publish-Refresh: prove Guidelines, publish it with `gm commit \"<description>\" --push`, then refresh and rebuild GuidelinesCLI with `sbm pack -b`.",
                         "CR - Context Refresh: after the authoritative workflow state is complete, refresh user-designated Concatenation context directories with `con any -a -f xml`.",
-                        "Requests such as `use an LRP`, `give me a ZMP`, `give me a BMP`, `split this as an SDP`, `finish with GPR`, or `finish with CR in <directory>` refer to these complete workflows.",
+                        "Requests such as `use an LRP`, `give me a ZMP`, `give me a BMP`, `split this as an SDP`, `give me an ATP`, `make this a gated ATP`, `finish with GPR`, or `finish with CR in <directory>` refer to these complete workflows.",
                     ]
                 )
             }
@@ -598,13 +600,40 @@ public enum MutationExecutionWorkflowGuideline:
                         "Treat the tools, input schemas, and risk metadata declared by the supplied Agentic capability manifest as the authoritative local Agentic tool surface for that workspace and session.",
                         "Do not assume undeclared Agentic tools exist, and do not invent tool names, fields, enum cases, or capabilities that are absent from the manifest.",
                         "When a declared typed Agentic tool covers the required operation, prefer that tool over constructing an equivalent shell, subprocess, or ad-hoc command path.",
-                        "Follow each declared input schema exactly. Use the Agentic preflight path before consequential mutation or other review-gated execution rather than treating tool availability as approval.",
+                        "Follow each declared input schema exactly. Use the Agentic preflight path before consequential mutation or other review-gated execution rather than treating tool availability as approval. For AgentToolPlan execution, apply preflight when each mutating or state-sensitive leaf becomes eligible rather than preflighting future leaves against stale state.",
                         "Treat Agentic preflight and invocation results as authoritative execution state. Update later reasoning from returned results rather than continuing from stale assumptions about repository, workspace, or mutation state.",
                         "Tool presence does not bypass risk, policy, approval, workspace, or execution boundaries. Respect the manifest's risk metadata and the runtime decision returned for the actual invocation.",
                         "Treat a capability manifest as a workspace- and session-scoped snapshot rather than a permanent hard-coded inventory. If a newer manifest is supplied, the newer declared surface supersedes older assumptions.",
                         "Before constructing calls for `agentic host bridge`, refresh or read the live capability manifest for the exact target workspace. Do not carry a manifest from another workspace forward merely because the same Agentic binary may expose a similar tool set.",
                         "Treat `agentic host bridge` as an I/O transport around the normal governed host invocation path, not as a second tool registry or execution authority. It must preserve the same workspace authorization, preflight, risk, approval, and runtime policy boundaries, and the returned host envelope is authoritative execution state.",
                         "When no Agentic capability manifest is supplied, do not assume a particular Agentic host or tool inventory is available merely because it existed in another session.",
+                    ]
+                )
+            }
+
+        case .agentic_tool_pass:
+            .init(
+                title: "Use ATP for governed Agentic tool execution",
+                summary: #"""
+                ATP is the standard shorthand for a manifest-grounded governed
+                Agentic execution pass against an authorized workspace and session.
+                """#
+            ) {
+                paragraph(
+                    #"""
+                    Shorthand: ATP - Agentic Tool Pass.
+                    """#
+                )
+
+                list(
+                    style: .unordered,
+                    items: [
+                        "Ground every ATP in the live Agentic capability manifest for the exact target workspace and session. ATP names a governed execution workflow; it is not permission to infer undeclared tools or bypass policy.",
+                        "Use one AgentToolCall for an atomic ATP, a non-empty AgentToolCall array only for genuinely independent sibling operations, and an AgentToolPlan for dependency-gated, recursive, or outcome-branched execution.",
+                        "Prefer declared typed Agentic tools over equivalent shell or ad-hoc process operations. The transport used to deliver an ATP, including clipboard or standard input through `agentic host bridge`, does not change its workspace, preflight, risk, approval, or execution semantics.",
+                        "When ATP operations depend on earlier outcomes, keep the dependency in one explicit AgentToolPlan when it can be represented through typed sequence, batch, and outcome branches rather than manually issuing predetermined follow-up calls from the conversational layer.",
+                        "For plan ATPs, preflight each mutating or state-sensitive leaf when it becomes eligible. Do not eagerly preflight future leaves against state that earlier leaves may change.",
+                        "Treat returned Agentic tool results and AgentToolPlanResult records as authoritative pass state. Continue, recover, publish, or construct another ATP from those results rather than from stale assumptions.",
                     ]
                 )
             }
@@ -621,14 +650,14 @@ public enum MutationExecutionWorkflowGuideline:
                 list(
                     style: .unordered,
                     items: [
-                        "Prefer an AgentToolPlan when multiple available typed Agentic calls have real execution dependencies. Keep AgentToolCall as the atomic leaf; orchestration belongs above calls rather than inside the call contract.",
+                        "Prefer an AgentToolPlan when multiple available typed Agentic calls have real execution dependencies. In an ATP, if later operations are eligible only from earlier outcomes, prefer one explicit AgentToolPlan over a series of separately invoked ATPs. Keep AgentToolCall as the atomic leaf; orchestration belongs above calls rather than inside the call contract.",
                         "Use sequence nodes for ordered dependencies where a later call is eligible only after the previous stage succeeds. Use batch nodes only for genuinely independent siblings; do not encode a dependency-sensitive publication workflow as a batch merely because several calls are known in advance.",
                         "Put verification before publication. A normal mutation-and-publication chain should read as mutation -> build or targeted proof -> git_prepare_commit -> git_commit_prepared -> git_push, with each downstream publication step unreachable after a failed, denied, or otherwise non-successful prerequisite.",
                         "Do not preflight future mutating or state-sensitive leaves eagerly when earlier leaves may change repository or workspace state. Preflight each leaf when it becomes eligible so its review is based on current authoritative state.",
                         "A plan is orchestration, not blanket approval. Every reachable leaf must continue through its declared schema, workspace authorization, preflight, risk classification, policy decision, approval boundary, invocation, and receipt independently.",
-                        "Use outcome-driven branches such as success, failure, and denial for deterministic continuation. Prefer semantic outcomes over arbitrary inspection of undocumented output JSON; add richer output-dependent conditions only through an explicit typed contract.",
+                        "Use outcome-driven branches such as success, failure, and denial for deterministic continuation. Outcome branches may themselves contain calls, sequences, batches, or further gated branches. Use recursive plan composition when later workflow structure is already knowable from typed execution outcomes rather than returning control to the conversational layer merely to choose the next predetermined call. Prefer semantic outcomes over arbitrary inspection of undocumented output JSON; add richer output-dependent conditions only through an explicit typed contract.",
                         "Treat AgentToolPlanResult records and tool-owned receipts as authoritative execution history for the plan. Record failed and skipped leaves explicitly rather than reasoning as though unexecuted dependent stages occurred.",
-                        "When the host bridge accepts a bare AgentToolCall, a non-empty AgentToolCall array, or an AgentToolPlan, use the bare call for one atomic invocation, the array for independent sibling work, and an explicit plan for dependency-sensitive sequence or recursive branching.",
+                        "Within an ATP, when the host bridge accepts a bare AgentToolCall, a non-empty AgentToolCall array, or an AgentToolPlan, use the bare call for one atomic invocation, the array for independent sibling work, and an explicit plan for dependency-sensitive sequence or recursive branching.",
                         "Do not model Agentic orchestration with hidden process-global cwd mutation. Work inside a subdirectory of one authorized workspace should eventually be represented as explicit working-directory execution scope; moving to another repository changes the workspace authority boundary and must be represented as an explicit authorized workspace transition rather than a shell-style cd escape.",
                         "Cross-repository workflows should therefore preserve explicit scope at each stage: finish and publish work in one authorized repository, transition only to another authorized repository root, synchronize it through typed operations such as git_pull, verify its resulting state, and only then continue dependent work there.",
                     ]

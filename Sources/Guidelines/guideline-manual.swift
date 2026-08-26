@@ -101,7 +101,7 @@ public enum GuidelineManual {
 
                 paragraph(
                     #"""
-                    Recurring workflows use stable shorthand: LRP for line-ranged manual patches, ZMP for pasteable zsh mutation passes, BMP for the equivalent bash mutation passes, SDP for staged dependency-aware operations, GPR for the Guidelines publish-refresh sequence, and CR for final-state Concatenation context refresh. ZMP and BMP passes use an outer subshell as their default interactive execution boundary. Optional workflow_section, workflow_step, and workflow_diag hooks provide structured terminal presentation when available, with compact plain-text fallbacks otherwise.
+                    Recurring workflows use stable shorthand: LRP for line-ranged manual patches, ZMP for pasteable zsh mutation passes, BMP for the equivalent bash mutation passes, SDP for staged dependency-aware operations, ATP for manifest-grounded governed Agentic tool execution, GPR for the Guidelines publish-refresh sequence, and CR for final-state Concatenation context refresh. ZMP and BMP passes use an outer subshell as their default interactive execution boundary. Optional workflow_section, workflow_step, and workflow_diag hooks provide structured terminal presentation when available, with compact plain-text fallbacks otherwise.
                     """#
                 )
             },
