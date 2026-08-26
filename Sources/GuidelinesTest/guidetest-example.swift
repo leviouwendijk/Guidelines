@@ -1,3 +1,6 @@
+import Foundation
+import Guidelines
+
 // guidelines-reference.swift
 //
 // Scope: entire file
@@ -756,9 +759,61 @@ func driftTest() async throws {
     )
 }
 
+func guidelineReferenceIdentityTest() throws {
+    guard let guideline = Guideline.all.first else {
+        throw TestFailure.expectationFailed(
+            "expected at least one authored guideline"
+        )
+    }
+
+    let reference = GuidelineReference(
+        guideline
+    )
+
+    try expect(
+        reference.rawValue,
+        equals: guideline.reference,
+        "GuidelineReference should retain the canonical guideline reference"
+    )
+
+    let literal: GuidelineReference =
+        "historical.guideline.reference"
+
+    try expect(
+        literal.rawValue,
+        equals: "historical.guideline.reference",
+        "GuidelineReference should remain an open string-backed identity"
+    )
+
+    let encoded = try JSONEncoder().encode(
+        reference
+    )
+
+    try expect(
+        String(
+            decoding: encoded,
+            as: UTF8.self
+        ),
+        equals: "\"\(guideline.reference)\"",
+        "GuidelineReference should encode as one JSON string"
+    )
+
+    let decoded = try JSONDecoder().decode(
+        GuidelineReference.self,
+        from: encoded
+    )
+
+    try expect(
+        decoded,
+        equals: reference,
+        "GuidelineReference should round-trip through Codable"
+    )
+}
+
 @main
 struct GuidelinesReferenceMain {
     static func main() async throws {
+        try guidelineReferenceIdentityTest()
         try await happyPathTest()
         try await driftTest()
 

@@ -14,12 +14,27 @@ let package = Package(
             targets: ["GuidelinesTest"]
         ),
     ],
+    dependencies: [
+        .package(
+            url: "https://github.com/leviouwendijk/Primitives.git",
+            branch: "master"
+        ),
+    ],
     targets: [
         .target(
-            name: "Guidelines"
+            name: "Guidelines",
+            dependencies: [
+                .product(
+                    name: "Primitives",
+                    package: "Primitives"
+                ),
+            ]
         ),
         .executableTarget(
-            name: "GuidelinesTest"
+            name: "GuidelinesTest",
+            dependencies: [
+                "Guidelines",
+            ]
         ),
     ],
     swiftLanguageModes: [.v6]
