@@ -808,6 +808,40 @@ func guidelineReferenceIdentityTest() throws {
         equals: reference,
         "GuidelineReference should round-trip through Codable"
     )
+
+    guard let resolved = Guideline(
+        reference: reference
+    ) else {
+        throw TestFailure.expectationFailed(
+            "authored GuidelineReference should resolve to a Guideline"
+        )
+    }
+
+    try expect(
+        resolved,
+        equals: guideline,
+        "authored GuidelineReference should resolve to the exact authored Guideline"
+    )
+
+    try expect(
+        resolved.title,
+        equals: guideline.title,
+        "resolved Guideline should expose authored title"
+    )
+
+    try expect(
+        resolved.summary,
+        equals: guideline.summary,
+        "resolved Guideline should expose authored summary"
+    )
+
+    if Guideline(
+        reference: literal
+    ) != nil {
+        throw TestFailure.expectationFailed(
+            "historical open GuidelineReference should remain decodable without falsely resolving to an authored Guideline"
+        )
+    }
 }
 
 @main

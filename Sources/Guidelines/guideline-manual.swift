@@ -148,6 +148,7 @@ public enum GuidelineManual {
                         "Preserve meaningful information and meaningful boundaries; avoid representations that add no independent meaning.",
                         "Do not manufacture representation merely because an architectural role can be named.",
                         "Keep domain operations usable independently of particular outer interfaces unless a deliberate lightweight conformance creates more cohesion than isolation.",
+                        "Prefer dependencies we own and can keep purpose-fit; accept external dependencies only from explicitly trusted sources when owning the capability would be materially harder or more costly than carrying the dependency.",
                         "Interpret loose intent into domain meaning before carrying it deeply into execution.",
                         "Separate preparation, effects, observation, outcome, and presentation where doing so increases determinism, inspectability, reuse, readability, or adaptability.",
                         "When work is inspected before execution, preserve the relationship between what was inspected and what executes, and detect material state drift explicitly.",
@@ -166,7 +167,37 @@ public enum GuidelineManual {
 
                 paragraph(
                     #"""
-                    The detailed chapters are authoritative for how these principles apply to input, parsing, resolution, planning, preflight, execution, events, results, artifacts, projection, adaptation, caching, recursive composition, abstraction, and compaction.
+                    The detailed chapters are authoritative for how these principles apply to dependency ownership, command-line architecture, input, parsing, resolution, planning, preflight, execution, events, results, artifacts, projection, adaptation, caching, recursive composition, abstraction, and compaction.
+                    """#
+                )
+            },
+
+            .init(
+                area: .structure,
+                key: "dependency_architecture",
+                title: "Dependency Architecture",
+                guidelines: DependencyArchitectureGuideline.allCases.map {
+                    .dependency_architecture($0)
+                }
+            ) {
+                paragraph(
+                    #"""
+                    Dependency architecture governs which capabilities we own, when external code is admitted, and how dependency weight affects package boundaries. Prefer purpose-fit first-party libraries; make external dependencies a deliberate exception based on explicit trust and disproportionate replacement cost.
+                    """#
+                )
+            },
+
+            .init(
+                area: .structure,
+                key: "command_line_architecture",
+                title: "Command-Line Architecture",
+                guidelines: CommandLineArchitectureGuideline.allCases.map {
+                    .command_line_architecture($0)
+                }
+            ) {
+                paragraph(
+                    #"""
+                    Command-line architecture applies dependency and boundary rules to Swift executables. Use the first-party Arguments library as the default parser, allow faithful lightweight argument conformances on native values, and structure non-trivial CLIs around typed root commands, semantic options, thin command routers, and explicit runners while retaining the DSL as a valid alternate style.
                     """#
                 )
             },

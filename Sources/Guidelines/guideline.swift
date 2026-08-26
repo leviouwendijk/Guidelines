@@ -51,8 +51,16 @@ public enum Guideline:
         CachingGuideline
     )
 
+    case command_line_architecture(
+        CommandLineArchitectureGuideline
+    )
+
     case compaction_passes(
         CompactionPassGuideline
+    )
+
+    case dependency_architecture(
+        DependencyArchitectureGuideline
     )
 
     case events(
@@ -149,7 +157,13 @@ public enum Guideline:
         case .caching(let guideline):
             guideline.content
 
+        case .command_line_architecture(let guideline):
+            guideline.content
+
         case .compaction_passes(let guideline):
+            guideline.content
+
+        case .dependency_architecture(let guideline):
             guideline.content
 
         case .events(let guideline):
@@ -246,7 +260,13 @@ public enum Guideline:
         case .caching:
             .structure
 
+        case .command_line_architecture:
+            .structure
+
         case .compaction_passes:
+            .structure
+
+        case .dependency_architecture:
             .structure
 
         case .events:
@@ -331,8 +351,14 @@ public enum Guideline:
         case .caching(let guideline):
             "structure.caching.\(guideline.rawValue)"
 
+        case .command_line_architecture(let guideline):
+            "structure.command_line_architecture.\(guideline.rawValue)"
+
         case .compaction_passes(let guideline):
             "structure.compaction_passes.\(guideline.rawValue)"
+
+        case .dependency_architecture(let guideline):
+            "structure.dependency_architecture.\(guideline.rawValue)"
 
         case .events(let guideline):
             "structure.events.\(guideline.rawValue)"
@@ -376,6 +402,20 @@ public enum Guideline:
         case .results(let guideline):
             "structure.results.\(guideline.rawValue)"
         }
+    }
+
+    public init?(
+        reference: GuidelineReference
+    ) {
+        guard let guideline = Self.all.first(
+            where: {
+                $0.reference == reference.rawValue
+            }
+        ) else {
+            return nil
+        }
+
+        self = guideline
     }
 
     public static var all: [Self] {
