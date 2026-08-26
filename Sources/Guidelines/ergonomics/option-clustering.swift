@@ -98,50 +98,178 @@ public enum OptionClusteringGuideline:
 
         case .compact_local_symbols:
             .init(
-                title: "Keep local option symbols compact but readable",
+                title: "Compact symbols when word boundaries remain obvious",
                 summary: #"""
-                Within well-scoped option values, prefer compact names when
-                context already carries the meaning, but use separators
-                when compacting would destroy readability.
+                Prefer compact compound symbols when a small number of short
+                words remain immediately readable as one unit. Preserve an
+                explicit word boundary when fusion creates visual, syllabic,
+                or interpretive ambiguity, and consider semantic nesting before
+                accepting increasingly long compound symbols.
                 """#
             ) {
-            paragraph(
-                #"""
-                Example 1:
-                """#
-            )
+                paragraph(
+                    #"""
+                    Compactness is useful when removing a casing boundary does not make the reader reconstruct it. The question is therefore not simply whether a symbol contains two words, but whether those words remain immediately recoverable after fusion.
+                    """#
+                )
 
-            code(
-                language: "swift",
-                content: #"""
-                // Good: compact compound stays readable.
-                let filepath = "/Users/levi/Documents/notes.md"
-                
-                // Unnecessary: the separator adds ceremony without adding much clarity.
-                let filePath = "/Users/levi/Documents/notes.md"
-                let file_path = "/Users/levi/Documents/notes.md"
-                
-                // Bad: compacting too many words destroys the shape of the phrase.
-                let someoptionalthing: String? = nil
-                
-                // Better: the separator earns its keep here.
-                let someOptionalThing: String? = nil
-                let some_optional_thing: String? = nil
-                
-                // We may want to shorten or nest there though, consdidering what is best.
-                struct OptionalThing: Sendable {
-                    let some: String? = nil
+                paragraph(
+                    #"""
+                    Two short words are the strongest candidates for compaction. Familiar compounds are especially safe, but familiarity is not an absolute requirement: a novel compound can still work when its shape and pronunciation expose the intended boundary naturally. Conversely, even two individually simple words should remain separated when their junction becomes visually or linguistically ambiguous.
+                    """#
+                )
+
+                list(
+                    style: .unordered,
+                    items: [
+                        "Prefer compact forms when the compound contains only a small number of short constituents and can be recognized immediately without consciously locating the hidden boundary.",
+                        "Treat familiar lexical compounds as especially strong candidates for compaction. `filepath` is easier to accept than a similarly sized but unfamiliar compound because the reader already recognizes the combined concept.",
+                        "Inspect the junction between the words. Repeated letters such as the `r|r` in `userrole`, `letterrunner`, or `errorreport`, the `n|n` in `tokenname`, and the `t|t` in `requesttype` obscure the boundary and usually justify preserving it explicitly.",
+                        "Visual collisions need not use the same letter. A junction such as the `t|f` in `outputformat` can be mildly harder to segment because the adjacent shapes compete visually. This is a softer signal, not an automatic rejection.",
+                        "Consider syllabic parsing as well as character shape. `modeladapter` has a clean `l|a` junction on paper, but can initially be parsed as something like `modela...`, forcing the reader to decipher the intended `model | adapter` split. If the fused spelling invites a plausible wrong segmentation, preserve the boundary.",
+                        "Word count and syllabic weight matter independently. Two short words such as `filepath` or `rootpath` can remain light; three or more words increasingly benefit from explicit casing, shortening, or semantic nesting.",
+                        "Do not optimize each member in isolation when it belongs to a tightly related family. If one otherwise acceptable compact symbol avoids becoming the lone camel-cased outlier in an intentionally compact structure, consistency may justify the compact spelling. A form such as `tokenbudget` can therefore be preferable in context even when it is less established than `filepath`.",
+                        "Consistency does not rescue a genuinely difficult spelling. A family of compact symbols should not force an unreadable member merely to maintain visual uniformity.",
+                        "When compaction no longer works, preserve the word boundary using the casing convention appropriate to that context. This guideline decides whether fusion is readable; casing conventions decide how the visible boundary should be represented.",
+                        "Before allowing a symbol to grow into a long sequence of explicit word boundaries, consider whether repeated context belongs in semantic nesting instead. Prefer nesting when it creates meaningful ownership or grouping, not merely as a mechanical way to shorten a name.",
+                        "These considerations apply to local properties, parameters, functions, option values, and similar interior symbols. Public API does not automatically forbid compact forms; assess the same readability and context signals. PascalCase type names may naturally expose boundaries that would be less obvious in lowercase spelling.",
+                    ]
+                )
+
+                example("Compact compounds") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        // Strong compact forms: two short words with
+                        // immediately recoverable boundaries.
+                        let filepath = "/Users/levi/Documents/notes.md"
+                        let rootpath = "/srv/application"
+
+                        // The reverse compound can still remain readable
+                        // when its boundary is easy to recover.
+                        let pathfile = "notes.md"
+
+                        // A novel compound can also be acceptable when the
+                        // surrounding symbol family favors compact spelling
+                        // and this form remains effortless to segment.
+                        let tokenbudget = 4_096
+                        """#
+                    )
                 }
-                
-                // or:
-                
-                struct OptionalThings: Sendable {
-                    let string: String? = nil
+
+                example("Boundary collisions") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        // The hidden boundary itself becomes troublesome.
+                        let userrole = role
+                        let letterrunner = runner
+                        let errorreport = report
+                        let tokenname = name
+                        let requesttype = type
+
+                        // Preserve the boundary instead.
+                        let userRole = role
+                        let letterRunner = runner
+                        let errorReport = report
+                        let tokenName = name
+                        let requestType = type
+                        """#
+                    )
+
+                    paragraph(
+                        #"""
+                        These forms are not rejected because two-word compounds are inherently bad. They are difficult because the final character of the first word collides with the first character of the second, making the hidden boundary slower to recover. `userrole`, for example, is close to acceptable but still introduces enough friction that the explicit boundary is usually preferable.
+                        """#
+                    )
                 }
-                
-                // of course also applying similarly to interior scope parameters (structures and funcs)
-                """#
-            )
+
+                example("Syllabic and visual ambiguity") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        // The letters technically permit fusion, but the
+                        // reader can initially discover the wrong internal shape.
+                        let modeladapter = adapter
+
+                        // Better.
+                        let modelAdapter = adapter
+
+                        // This remains fairly readable, but the t|f junction
+                        // makes the boundary somewhat less effortless.
+                        let outputformat = format
+
+                        // Either may be preferable depending on surrounding style.
+                        let outputFormat = format
+                        """#
+                    )
+
+                    paragraph(
+                        #"""
+                        Character count alone does not predict readability. `modeladapter` is difficult partly because its additional syllabic weight allows the eye and inner voice to begin grouping it incorrectly, as though the word began `modela...` rather than `model | adapter`. `outputformat` is much more recoverable, although its `t|f` junction introduces slight visual friction because the adjacent letter shapes compete. These are judgment signals rather than a mechanical character-pair blacklist.
+                        """#
+                    )
+                }
+
+                example("Escalate from fusion to casing to structure") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        // Bad: the phrase has lost its internal shape.
+                        let someoptionalthing: String? = nil
+
+                        // Better when this genuinely needs to remain one symbol.
+                        let someOptionalThing: String? = nil
+
+                        // Depending on the surrounding casing convention,
+                        // an explicit boundary may take another form.
+                        let some_optional_thing: String? = nil
+
+                        // But a long compound can also indicate that some
+                        // context belongs in structure instead of the symbol.
+                        struct OptionalThing: Sendable {
+                            let some: String?
+                        }
+
+                        struct OptionalThings: Sendable {
+                            let string: String?
+                        }
+                        """#
+                    )
+
+                    paragraph(
+                        #"""
+                        The progression is not `always compact, otherwise camelCase`. First ask whether the compact spelling remains effortless. If not, expose the word boundary using the casing convention appropriate to the surrounding context. If that produces a heavy multi-word symbol, ask whether part of the phrase represents reusable context that would read better as a parent accessor, nested value, or other semantic grouping.
+                        """#
+                    )
+                }
+
+                example("Prefer semantic paths over very long operation names") {
+                    code(
+                        language: "swift",
+                        content: #"""
+                        // Increasingly heavy: several semantic clauses are
+                        // being serialized into one identifier.
+                        collectLinesWithIndices()
+
+                        // Prefer a path like this when lines and indices are
+                        // real, reusable semantic stages of the API.
+                        collect.lines.indices()
+                        """#
+                    )
+
+                    paragraph(
+                        #"""
+                        Nesting is not merely another spelling separator. It changes the API structure and should therefore be used only when the intermediate components represent meaningful context or ownership. When they do, a semantic access path can be substantially easier to read than repeatedly encoding the same structure into a long camel-cased symbol.
+                        """#
+                    )
+                }
+
+                paragraph(
+                    #"""
+                    The practical decision order is therefore: first ask whether a small compound can fuse without requiring re-segmentation; then inspect the visual junction, syllabic reading, familiarity, and consistency with neighboring symbols. If fusion introduces friction, preserve the boundary. If preserving several boundaries produces a heavy symbol, consider shortening or meaningful nesting before accepting the longer spelling.
+                    """#
+                )
             }
 
         case .nest_related_options:
