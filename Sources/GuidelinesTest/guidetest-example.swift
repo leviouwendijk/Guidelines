@@ -847,6 +847,7 @@ func guidelineReferenceIdentityTest() throws {
 @main
 struct GuidelinesReferenceMain {
     static func main() async throws {
+        try structuredContentAuthoringTest()
         try guidelineReferenceIdentityTest()
         try await happyPathTest()
         try await driftTest()

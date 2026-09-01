@@ -1,100 +1,143 @@
+import DSL
+
 @resultBuilder
 public enum GuidelineBlockBuilder {
     public static func buildExpression(
-        _ expression: GuidelineContent.Block
-    ) -> [GuidelineContent.Block] {
+        _ expression: StructuredContent
+    ) -> [StructuredContent] {
         [expression]
     }
 
     public static func buildExpression(
-        _ expression: [GuidelineContent.Block]
-    ) -> [GuidelineContent.Block] {
+        _ expression: [StructuredContent]
+    ) -> [StructuredContent] {
         expression
     }
 
     public static func buildBlock(
-        _ components: [GuidelineContent.Block]...
-    ) -> [GuidelineContent.Block] {
+        _ components: [StructuredContent]...
+    ) -> [StructuredContent] {
         components.flatMap { $0 }
     }
 
     public static func buildOptional(
-        _ component: [GuidelineContent.Block]?
-    ) -> [GuidelineContent.Block] {
+        _ component: [StructuredContent]?
+    ) -> [StructuredContent] {
         component ?? []
     }
 
     public static func buildEither(
-        first component: [GuidelineContent.Block]
-    ) -> [GuidelineContent.Block] {
+        first component: [StructuredContent]
+    ) -> [StructuredContent] {
         component
     }
 
     public static func buildEither(
-        second component: [GuidelineContent.Block]
-    ) -> [GuidelineContent.Block] {
+        second component: [StructuredContent]
+    ) -> [StructuredContent] {
         component
     }
 
     public static func buildArray(
-        _ components: [[GuidelineContent.Block]]
-    ) -> [GuidelineContent.Block] {
+        _ components: [[StructuredContent]]
+    ) -> [StructuredContent] {
         components.flatMap { $0 }
+    }
+
+    public static func buildFinalResult(
+        _ component: [StructuredContent]
+    ) -> StructuredContent {
+        guard
+            component.count == 1,
+            let content = component.first
+        else {
+            return .collection(
+                component
+            )
+        }
+
+        return content
     }
 }
 
-func paragraph(
+public func paragraph(
     _ content: String
-) -> GuidelineContent.Block {
-    .paragraph(content)
+) -> StructuredContent {
+    .paragraph(
+        [
+            .text(content),
+        ]
+    )
 }
 
-func code(
+public func code(
     language: String? = nil,
     content: String
-) -> GuidelineContent.Block {
+) -> StructuredContent {
     .code(
         language: language,
-        content: content
+        source: content
     )
 }
 
-func quote(
+public func quote(
     _ content: String
-) -> GuidelineContent.Block {
-    .quote(content)
+) -> StructuredContent {
+    .quote(
+        .paragraph(
+            [
+                .text(content),
+            ]
+        )
+    )
 }
 
-func list(
-    style: GuidelineContent.ListStyle,
+public func list(
+    style: StructuredContent.ListStyle,
     items: [String]
-) -> GuidelineContent.Block {
+) -> StructuredContent {
     .list(
         style: style,
-        items: items
+        items:
+            items.map { item in
+                .paragraph(
+                    [
+                        .text(item),
+                    ]
+                )
+            }
     )
 }
 
-func example(
+public func example(
     _ title: String? = nil,
-    @GuidelineBlockBuilder content: () -> [GuidelineContent.Block]
-) -> GuidelineContent.Block {
-    .example(
-        .init(
-            title: title,
-            content: content()
-        )
+    @GuidelineBlockBuilder content: () -> StructuredContent
+) -> StructuredContent {
+    .group(
+        role:
+            GuidelineContent
+                .Role
+                .example
+                .structuredContentRole,
+        title:
+            title.map { title in
+                [
+                    .text(title),
+                ]
+            },
+        content: content()
     )
 }
 
-func section(
+public func section(
     _ title: String,
-    @GuidelineBlockBuilder content: () -> [GuidelineContent.Block]
-) -> GuidelineContent.Block {
-    .section(
-        .init(
-            title: title,
-            content: content()
-        )
+    @GuidelineBlockBuilder content: () -> StructuredContent
+) -> StructuredContent {
+    .group(
+        role: nil,
+        title: [
+            .text(title),
+        ],
+        content: content()
     )
 }

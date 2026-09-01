@@ -1,3 +1,5 @@
+import DSL
+
 public struct GuidelineChapter:
     Sendable,
     Hashable,
@@ -6,14 +8,14 @@ public struct GuidelineChapter:
     public let area: GuidelineArea
     public let key: String
     public let title: String
-    public let introduction: [GuidelineContent.Block]
+    public let introduction: StructuredContent
     public let guidelines: [Guideline]
 
     public init(
         area: GuidelineArea,
         key: String,
         title: String,
-        introduction: [GuidelineContent.Block] = [],
+        introduction: StructuredContent = .collection([]),
         guidelines: [Guideline]
     ) {
         self.area = area
@@ -28,7 +30,7 @@ public struct GuidelineChapter:
         key: String,
         title: String,
         guidelines: [Guideline],
-        @GuidelineBlockBuilder introduction: () -> [GuidelineContent.Block]
+        @GuidelineBlockBuilder introduction: () -> StructuredContent
     ) {
         self.init(
             area: area,
