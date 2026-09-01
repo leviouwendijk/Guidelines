@@ -1,3 +1,5 @@
+import DSL
+
 public enum Guideline:
     Sendable,
     Hashable,
@@ -13,6 +15,10 @@ public enum Guideline:
 
     case casing_conventions(
         CasingConventionGuideline
+    )
+
+    case web_interface_design(
+        WebDesignGuideline
     )
 
     case dsl_design(
@@ -130,6 +136,9 @@ public enum Guideline:
         case .casing_conventions(let guideline):
             guideline.content
 
+        case .web_interface_design(let guideline):
+            guideline.content
+
         case .dsl_design(let guideline):
             guideline.content
 
@@ -218,7 +227,7 @@ public enum Guideline:
         content.summary
     }
 
-    public var explanation: [GuidelineContent.Block] {
+    public var explanation: StructuredContent {
         content.explanation
     }
 
@@ -232,6 +241,9 @@ public enum Guideline:
 
         case .casing_conventions:
             .design
+
+        case .web_interface_design:
+            .web_design
 
         case .dsl_design:
             .ergonomics
@@ -323,6 +335,9 @@ public enum Guideline:
 
         case .casing_conventions(let guideline):
             "design.casing_conventions.\(guideline.rawValue)"
+
+        case .web_interface_design(let guideline):
+            "web_design.interface_design.\(guideline.rawValue)"
 
         case .dsl_design(let guideline):
             "ergonomics.dsl_design.\(guideline.rawValue)"

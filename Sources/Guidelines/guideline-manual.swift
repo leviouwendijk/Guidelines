@@ -47,6 +47,27 @@ public enum GuidelineManual {
             },
 
             .init(
+                area: .web_design,
+                key: "interface_design",
+                title: "Web Interface Design",
+                guidelines: WebDesignGuideline.allCases.map {
+                    .web_interface_design($0)
+                }
+            ) {
+                paragraph(
+                    #"""
+                    Web interface design governs the rendered browser contract rather than a particular framework, language, or utility-class vocabulary. Prefer durable platform semantics: accessible structure, keyboard and touch operability, resilient content, addressable navigation state, stable media and layout, locale-aware presentation, and measured performance.
+                    """#
+                )
+
+                paragraph(
+                    #"""
+                    Apply these principles to the behavior ultimately emitted by HTML, CSS, JavaScript, generated components, or higher-level DSLs. Where an abstraction already knows the semantic role of a component, encode the invariant in that abstraction instead of requiring every call site to reconstruct low-level browser details.
+                    """#
+                )
+            },
+
+            .init(
                 area: .ergonomics,
                 key: "dsl_design",
                 title: "DSL Design",

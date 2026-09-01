@@ -5,6 +5,7 @@ public enum GuidelineArea:
     CaseIterable
 {
     case design
+    case web_design
     case ergonomics
     case structure
     case ai
