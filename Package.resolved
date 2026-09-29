@@ -1,5 +1,5 @@
 {
-  "originHash" : "236afe61d74d6c076df48abfb8b23191b49712c629bb529f22539ec20b95ef09",
+  "originHash" : "f894aeeda6060d10ec42bb9d7c1ed72c6835ec8d723990b7dfa4f405060b2448",
   "pins" : [
     {
       "identity" : "dsl",
@@ -17,6 +17,15 @@
       "state" : {
         "branch" : "master",
         "revision" : "7b53326bba4229c0b8c62529dfe0934f6ddedf6c"
+      }
+    },
+    {
+      "identity" : "schema",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/leviouwendijk/Schema.git",
+      "state" : {
+        "branch" : "master",
+        "revision" : "6b8f45a73ab92ce083c4848bb520db6d99866a06"
       }
     }
   ],
