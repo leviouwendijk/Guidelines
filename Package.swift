@@ -9,10 +9,6 @@ let package = Package(
             name: "Guidelines",
             targets: ["Guidelines"]
         ),
-        .executable(
-            name: "guidetest",
-            targets: ["GuidelinesTest"]
-        ),
     ],
     dependencies: [
         .package(
@@ -36,20 +32,6 @@ let package = Package(
                     name: "Primitives",
                     package: "Primitives"
                 ),
-                .product(
-                    name: "DSL",
-                    package: "DSL"
-                ),
-                .product(
-                    name: "Schema",
-                    package: "Schema"
-                ),
-            ]
-        ),
-        .executableTarget(
-            name: "GuidelinesTest",
-            dependencies: [
-                "Guidelines",
                 .product(
                     name: "DSL",
                     package: "DSL"
